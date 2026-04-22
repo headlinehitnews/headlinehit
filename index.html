@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HEADLINE HIT</title>
+  <meta name="description" content="The news, unspun.">
+  <meta property="og:title" content="Headline Hit">
+  <meta property="og:description" content="The news, unspun.">
+  <meta property="og:image" content="https://headlinehit.com/headlinehit.svg">
+  <meta property="og:url" content="https://headlinehit.com">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #ffffff;
+      font-family: Arial, sans-serif;
+      color: #000000;
+    }
+
+    header {
+      background: #ffffff;
+      text-align: center;
+      padding: 16px 20px;
+      border-bottom: 4px solid #cc0000;
+    }
+
+    header h1 {
+      font-size: 2.8em;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      font-family: Georgia, serif;
+      color: #000000;
+    }
+
+    header p.tagline {
+      font-size: 1em;
+      color: #444444;
+      margin-top: 6px;
+    }
+
+    .ticker {
+      background: #111111;
+      color: #ffffff;
+      padding: 7px 20px;
+      font-family: Arial, sans-serif;
+      font-size: 0.82em;
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+
+    .ticker-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+
+    .ticker-name {
+      color: #999999;
+      font-size: 0.85em;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .ticker-price { font-weight: bold; color: #ffffff; }
+    .ticker-change { font-size: 0.9em; }
+    .ticker-change.up { color: #4caf50; }
+    .ticker-change.down { color: #f44336; }
+    .ticker-change.flat { color: #999999; }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 20px;
+      margin-bottom: 0;
+      align-items: stretch;
+    }
+
+    .top-story {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .top-story a.img-link { display: block; flex: 1; }
+
+    .top-story img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .top-story .no-image {
+      width: 100%;
+      flex: 1;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 0.85em;
+    }
+
+    .top-story a.headline {
+      font-size: 1.4em;
+      font-weight: bold;
+      color: #cc0000;
+      text-decoration: none;
+      line-height: 1.3;
+      display: block;
+      text-wrap: balance;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .top-story a.headline:hover { text-decoration: underline; }
+
+    .sub-grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .sub-card { display: flex; flex-direction: column; }
+    .sub-card a.img-link { display: block; }
+
+    .sub-card img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .sub-card .no-image {
+      width: 100%;
+      height: 140px;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 0.75em;
+    }
+
+    .sub-card a.headline {
+      font-size: 0.9em;
+      font-weight: bold;
+      color: #000080;
+      text-decoration: none;
+      line-height: 1.3;
+      display: block;
+      text-align: center;
+      text-wrap: balance;
+      margin-top: 6px;
+    }
+
+    .sub-card a.headline:hover { text-decoration: underline; }
+    .sub-card a.headline:visited { color: #551a8b; }
+
+    .sub-row-6 {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      border-top: 2px solid #cc0000;
+      border-bottom: 2px solid #cccccc;
+      padding: 16px 0;
+      margin-top: 16px;
+      margin-bottom: 20px;
+    }
+
+    .sub-row-card { display: flex; flex-direction: column; }
+    .sub-row-card a.img-link { display: block; }
+
+    .sub-row-card img {
+      width: 100%;
+      height: 90px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .sub-row-card .no-image {
+      width: 100%;
+      height: 90px;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 0.7em;
+    }
+
+    .sub-row-card a.headline {
+      font-size: 0.8em;
+      font-weight: bold;
+      color: #000080;
+      text-decoration: none;
+      line-height: 1.3;
+      display: block;
+      text-align: center;
+      text-wrap: balance;
+      margin-top: 5px;
+    }
+
+    .sub-row-card a.headline:hover { text-decoration: underline; }
+    .sub-row-card a.headline:visited { color: #551a8b; }
+
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px 30px;
+      border-top: 2px solid #cccccc;
+      padding-top: 20px;
+    }
+
+    .link-item {
+      margin-bottom: 0;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eeeeee;
+    }
+
+    .link-item a {
+      font-size: 1.05em;
+      color: #000080;
+      text-decoration: none;
+      display: block;
+      padding-left: 1.4em;
+      text-indent: -1.4em;
+    }
+
+    .link-item a:hover { text-decoration: underline; }
+    .link-item a:visited { color: #551a8b; }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.75em;
+      color: #888888;
+      border-top: 2px solid #000000;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 768px) {
+      header h1 { font-size: 1.8em; letter-spacing: 3px; }
+      header p.tagline { font-size: 0.85em; }
+      .ticker { gap: 14px; font-size: 0.78em; padding: 6px 12px; }
+      .hero { grid-template-columns: 1fr; }
+      .top-story img, .top-story .no-image { height: 220px; flex: none; }
+      .top-story a.headline { font-size: 1.1em; }
+      .sub-grid-2x2 { grid-template-columns: 1fr 1fr; }
+      .sub-card img, .sub-card .no-image { height: 110px; }
+      .sub-row-6 { grid-template-columns: 1fr 1fr; }
+      .sub-row-card img, .sub-row-card .no-image { height: 100px; }
+      .sub-row-card a.headline { font-size: 0.85em; }
+      .links-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>HEADLINE HIT</h1>
+    <p class="tagline">The news, unspun.</p>
+  </header>
+
+  <div class="ticker" id="ticker">
+    <div class="ticker-item"><span class="ticker-name">BTC</span><span class="ticker-price" id="t-btc">—</span><span class="ticker-change" id="t-btc-c"></span></div>
+    <div class="ticker-item"><span class="ticker-name">S&amp;P 500</span><span class="ticker-price" id="t-sp">—</span><span class="ticker-change" id="t-sp-c"></span></div>
+    <div class="ticker-item"><span class="ticker-name">Gold</span><span class="ticker-price" id="t-gold">—</span><span class="ticker-change" id="t-gold-c"></span></div>
+    <div class="ticker-item"><span class="ticker-name">Oil</span><span class="ticker-price" id="t-oil">—</span><span class="ticker-change" id="t-oil-c"></span></div>
+    <div class="ticker-item"><span class="ticker-name">USD/EUR</span><span class="ticker-price" id="t-eur">—</span><span class="ticker-change" id="t-eur-c"></span></div>
+  </div>
+
+  <div class="container">
+    <div class="hero">
+      <div class="top-story" id="top-story"></div>
+      <div class="sub-grid-2x2" id="sub-grid-2x2"></div>
+    </div>
+    <div class="sub-row-6" id="sub-row-6"></div>
+    <div class="links-grid" id="links-grid"></div>
+  </div>
+
+  <footer>
+    <p>Updated throughout the day</p>
+    <p id="last-updated"></p>
+  </footer>
+
+  <script>
+    function fmtChange(pct) {
+      if (pct === null || isNaN(pct)) return { text: '', cls: 'flat' };
+      const sign = pct >= 0 ? '+' : '';
+      return { text: sign + pct.toFixed(2) + '%', cls: pct >= 0 ? 'up' : 'down' };
+    }
+
+    function setTicker(id, price, change) {
+      document.getElementById(id).textContent = price;
+      const el = document.getElementById(id + '-c');
+      const c = fmtChange(change);
+      el.textContent = c.text;
+      el.className = 'ticker-change ' + c.cls;
+    }
+
+    async function loadTicker() {
+      try {
+        const btcRes = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
+        const btcData = await btcRes.json();
+        setTicker('t-btc', '$' + btcData.bitcoin.usd.toLocaleString('en-US', { maximumFractionDigits: 0 }), btcData.bitcoin.usd_24h_change);
+      } catch (e) { document.getElementById('t-btc').textContent = 'N/A'; }
+
+      try {
+        const yRes = await fetch('https://news-worker.headlinehitnews.workers.dev/quotes');
+        const yData = await yRes.json();
+        const quotes = yData.quoteResponse.result;
+        quotes.forEach(q => {
+          const pct = q.regularMarketChangePercent;
+          if (q.symbol === '^GSPC') setTicker('t-sp', q.regularMarketPrice.toLocaleString('en-US', { maximumFractionDigits: 0 }), pct);
+          else if (q.symbol === 'GC=F') setTicker('t-gold', '$' + q.regularMarketPrice.toLocaleString('en-US', { maximumFractionDigits: 0 }), pct);
+          else if (q.symbol === 'CL=F') setTicker('t-oil', '$' + q.regularMarketPrice.toFixed(2), pct);
+          else if (q.symbol === 'EURUSD=X') setTicker('t-eur', q.regularMarketPrice.toFixed(4), pct);
+        });
+      } catch (e) {
+        ['t-sp', 't-gold', 't-oil', 't-eur'].forEach(id => { document.getElementById(id).textContent = 'N/A'; });
+      }
+    }
+
+    loadTicker();
+    setInterval(loadTicker, 60000);
+
+    fetch('https://news-worker.headlinehitnews.workers.dev/links')
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('last-updated').textContent =
+          'Last updated: ' + new Date(data.lastUpdated).toLocaleString();
+
+        const links = data.links;
+
+        if (links.length > 0) {
+          const top = links[0];
+          const topDiv = document.getElementById('top-story');
+          if (top.image) {
+            const imgLink = document.createElement('a');
+            imgLink.href = top.url; imgLink.target = '_blank'; imgLink.className = 'img-link';
+            const img = document.createElement('img');
+            img.src = top.image; img.alt = top.headline;
+            imgLink.appendChild(img); topDiv.appendChild(imgLink);
+          } else {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'no-image'; placeholder.textContent = 'No image';
+            topDiv.appendChild(placeholder);
+          }
+          const link = document.createElement('a');
+          link.href = top.url; link.target = '_blank'; link.className = 'headline';
+          link.textContent = top.headline; topDiv.appendChild(link);
+        }
+
+        const subGrid = document.getElementById('sub-grid-2x2');
+        links.slice(1, 5).forEach(item => {
+          const card = document.createElement('div'); card.className = 'sub-card';
+          if (item.image) {
+            const imgLink = document.createElement('a');
+            imgLink.href = item.url; imgLink.target = '_blank'; imgLink.className = 'img-link';
+            const img = document.createElement('img'); img.src = item.image; img.alt = item.headline;
+            imgLink.appendChild(img); card.appendChild(imgLink);
+          } else {
+            const p = document.createElement('div'); p.className = 'no-image'; p.textContent = 'No image'; card.appendChild(p);
+          }
+          const link = document.createElement('a');
+          link.href = item.url; link.target = '_blank'; link.className = 'headline'; link.textContent = item.headline;
+          card.appendChild(link); subGrid.appendChild(card);
+        });
+
+        const subRow = document.getElementById('sub-row-6');
+        links.slice(5, 11).forEach(item => {
+          const card = document.createElement('div'); card.className = 'sub-row-card';
+          if (item.image) {
+            const imgLink = document.createElement('a');
+            imgLink.href = item.url; imgLink.target = '_blank'; imgLink.className = 'img-link';
+            const img = document.createElement('img'); img.src = item.image; img.alt = item.headline;
+            imgLink.appendChild(img); card.appendChild(imgLink);
+          } else {
+            const p = document.createElement('div'); p.className = 'no-image'; p.textContent = 'No image'; card.appendChild(p);
+          }
+          const link = document.createElement('a');
+          link.href = item.url; link.target = '_blank'; link.className = 'headline'; link.textContent = item.headline;
+          card.appendChild(link); subRow.appendChild(card);
+        });
+
+        const grid = document.getElementById('links-grid');
+        links.slice(11).forEach(item => {
+          const div = document.createElement('div'); div.className = 'link-item';
+          const prefix = item.emoji ? item.emoji : '&#9654;';
+          div.innerHTML = '<a href="' + item.url + '" target="_blank">' + prefix + ' ' + item.headline + '</a>';
+          grid.appendChild(div);
+        });
+      })
+      .catch(() => {
+        document.getElementById('top-story').innerHTML = '<p>No links yet. Check back soon.</p>';
+      });
+  </script>
+
+</body>
+</html>
