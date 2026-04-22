@@ -316,6 +316,19 @@ async function handleMessage(msg) {
     return;
   }
 
+  if (text.toLowerCase() === 'help' || text.toLowerCase() === '/help') {
+    bot.sendMessage(chatId,
+      '📋 *Headline Hit — Commands*\n\n' +
+      '*fetch* — Browse RSS stories to add to the site\n' +
+      '*edit* — Edit a headline, image, or category\n' +
+      '*delete* — Remove a link from the site\n' +
+      '*cancel* — Cancel whatever you\'re currently doing\n\n' +
+      '*To add a link manually:* Just paste any URL\n\n' +
+      '*During fetch:* Reply with a number to pick a story, "more" for the next batch'
+    , { parse_mode: 'Markdown' });
+    return;
+  }
+  
   if (text.toLowerCase() === 'edit' || text.toLowerCase() === '/edit') {
     const data = await getLinks();
     if (!data.links || data.links.length === 0) {
