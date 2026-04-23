@@ -19,62 +19,242 @@
       --danger: #c62828;
     }
 
+    html, body { height: 100%; overflow: hidden; }
+
     body {
       font-family: Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
-      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     /* ── Header ── */
     header {
+      height: 48px;
       background: #111;
       color: #fff;
-      padding: 12px 20px;
+      padding: 0 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      flex-shrink: 0;
     }
 
     header h1 {
-      font-size: 1.1em;
+      font-size: 1.05em;
       letter-spacing: 2px;
       text-transform: uppercase;
       color: var(--red);
     }
 
-    header span {
-      font-size: 0.8em;
-      color: #aaa;
-    }
+    #header-count { font-size: 0.8em; color: #aaa; }
 
-    /* ── Tab nav ── */
+    /* ── Tabs ── */
     .tabs {
+      height: 42px;
       display: flex;
       background: #222;
       border-bottom: 2px solid var(--red);
+      flex-shrink: 0;
     }
 
     .tab-btn {
-      padding: 10px 22px;
+      padding: 0 22px;
       background: none;
       border: none;
       color: #aaa;
-      font-size: 0.9em;
+      font-size: 0.88em;
       cursor: pointer;
       transition: color 0.15s, background 0.15s;
-      letter-spacing: 0.5px;
     }
 
     .tab-btn:hover { color: #fff; background: #333; }
     .tab-btn.active { color: #fff; background: var(--red); }
 
-    /* ── Main layout ── */
-    .tab-panel { display: none; padding: 20px; max-width: 1100px; margin: 0 auto; }
-    .tab-panel.active { display: block; }
+    /* ── Content area fills remaining height ── */
+    .content-area {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .tab-panel {
+      display: none;
+      height: 100%;
+    }
+
+    .tab-panel.active { display: flex; flex-direction: column; }
+
+    /* Browse tab is a row (split pane) */
+    #tab-browse { flex-direction: row !important; }
+
+    /* ── Browse: left pane ── */
+    .browse-left {
+      width: 400px;
+      min-width: 260px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      border-right: 2px solid var(--border);
+      background: var(--card);
+    }
+
+    .browse-toolbar {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      flex-shrink: 0;
+    }
+
+    .browse-toolbar-row {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .browse-toolbar input,
+    .browse-toolbar select {
+      flex: 1;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-size: 0.82em;
+      font-family: Arial, sans-serif;
+      color: var(--text);
+      background: #fff;
+    }
+
+    .browse-toolbar input:focus,
+    .browse-toolbar select:focus {
+      outline: 2px solid var(--red);
+      border-color: transparent;
+    }
+
+    #story-count {
+      font-size: 0.73em;
+      color: var(--muted);
+    }
+
+    #story-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .story-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .story-item:hover { background: #f8f8f8; }
+    .story-item.active { background: #fff5f5; border-left: 3px solid var(--red); padding-left: 9px; }
+
+    .story-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 3px;
+    }
+
+    .story-source {
+      font-size: 0.67em;
+      color: var(--red);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: bold;
+    }
+
+    .story-time {
+      font-size: 0.67em;
+      color: var(--muted);
+    }
+
+    .story-headline-text {
+      font-size: 0.87em;
+      line-height: 1.4;
+      color: var(--text);
+    }
+
+    .story-item.active .story-headline-text {
+      color: var(--navy);
+      font-weight: bold;
+    }
+
+    /* ── Browse: right pane ── */
+    .browse-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #eee;
+      overflow: hidden;
+    }
+
+    .preview-toolbar {
+      padding: 8px 14px;
+      background: #f9f9f9;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    #preview-title {
+      flex: 1;
+      font-size: 0.84em;
+      color: #aaa;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #preview-frame {
+      flex: 1;
+      border: none;
+      background: #fff;
+      display: none;
+    }
+
+    #preview-blocked {
+      flex: 1;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .blocked-icon { font-size: 2.8em; }
+    .blocked-title { font-size: 1.05em; font-weight: bold; }
+    .blocked-msg { font-size: 0.85em; color: var(--muted); max-width: 360px; line-height: 1.6; }
+
+    #preview-empty {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 0.88em;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .empty-icon { font-size: 2.5em; color: #ccc; }
+
+    /* ── Add / Manage tab scrollable wrapper ── */
+    .tab-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .tab-scroll-inner { max-width: 700px; margin: 0 auto; }
 
     /* ── Cards ── */
     .card {
@@ -96,27 +276,26 @@
     /* ── Buttons ── */
     .btn {
       display: inline-block;
-      padding: 8px 16px;
+      padding: 7px 14px;
       border: none;
       border-radius: 3px;
-      font-size: 0.9em;
+      font-size: 0.85em;
       cursor: pointer;
       font-family: Arial, sans-serif;
       transition: opacity 0.15s;
+      white-space: nowrap;
     }
 
     .btn:hover { opacity: 0.85; }
     .btn:disabled { opacity: 0.45; cursor: default; }
     .btn-red { background: var(--red); color: #fff; }
-    .btn-navy { background: var(--navy); color: #fff; }
-    .btn-gray { background: #666; color: #fff; }
     .btn-green { background: var(--success); color: #fff; }
     .btn-danger { background: var(--danger); color: #fff; }
     .btn-outline { background: none; border: 1px solid var(--border); color: var(--text); }
-    .btn-sm { padding: 5px 11px; font-size: 0.82em; }
+    .btn-sm { padding: 5px 10px; font-size: 0.8em; }
 
-    /* ── Form elements ── */
-    input[type="text"], input[type="url"], textarea, select {
+    /* ── Forms ── */
+    input[type="text"], input[type="url"], select {
       width: 100%;
       padding: 8px 10px;
       border: 1px solid var(--border);
@@ -127,90 +306,34 @@
       background: #fff;
     }
 
-    input[type="text"]:focus, input[type="url"]:focus, textarea:focus, select:focus {
+    input[type="text"]:focus, input[type="url"]:focus, select:focus {
       outline: 2px solid var(--red);
       border-color: transparent;
     }
 
     label { font-size: 0.85em; color: var(--muted); display: block; margin-bottom: 4px; }
-
     .field { margin-bottom: 12px; }
+    .row { display: flex; gap: 10px; align-items: center; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+    .text-muted { color: var(--muted); font-size: 0.85em; }
+    .mt8 { margin-top: 8px; }
 
     /* ── Status bar ── */
     #status-bar {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
+      height: 34px;
       background: #222;
       color: #fff;
-      font-size: 0.85em;
-      padding: 8px 20px;
-      z-index: 200;
+      font-size: 0.82em;
+      padding: 0 20px;
       display: flex;
       align-items: center;
-      gap: 10px;
-      min-height: 36px;
+      flex-shrink: 0;
     }
 
     #status-bar.ok { background: var(--success); }
     #status-bar.error { background: var(--danger); }
 
-    /* ── Story list (Browse tab) ── */
-    #story-list { margin-top: 14px; }
-
-    .story-item {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 12px 14px;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-    }
-
-    .story-item:hover { border-color: #bbb; }
-
-    .story-source {
-      font-size: 0.72em;
-      color: var(--red);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      white-space: nowrap;
-      min-width: 110px;
-      padding-top: 2px;
-    }
-
-    .story-headline {
-      flex: 1;
-      font-size: 0.95em;
-      line-height: 1.4;
-      color: var(--navy);
-    }
-
-    .story-headline a {
-      color: var(--navy);
-      text-decoration: none;
-    }
-
-    .story-headline a:hover { text-decoration: underline; }
-
-    .story-actions { display: flex; gap: 6px; flex-shrink: 0; }
-
-    /* ── Filter bar ── */
-    .filter-bar {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-    }
-
-    .filter-bar input {
-      flex: 1;
-      min-width: 200px;
-    }
-
-    /* ── Current links list ── */
+    /* ── Current links ── */
     .link-row {
       background: var(--card);
       border: 1px solid var(--border);
@@ -222,55 +345,31 @@
       gap: 12px;
     }
 
-    .link-row-index {
-      font-size: 0.75em;
-      color: var(--muted);
-      min-width: 24px;
-      text-align: right;
-    }
+    .link-row-index { font-size: 0.75em; color: var(--muted); min-width: 22px; text-align: right; }
 
     .link-row-thumb {
-      width: 56px;
-      height: 40px;
-      object-fit: cover;
-      border-radius: 2px;
-      background: #eee;
-      flex-shrink: 0;
+      width: 56px; height: 40px;
+      object-fit: cover; border-radius: 2px; flex-shrink: 0;
     }
 
     .link-row-thumb-empty {
-      width: 56px;
-      height: 40px;
-      background: #eee;
-      border-radius: 2px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.65em;
-      color: #aaa;
+      width: 56px; height: 40px;
+      background: #eee; border-radius: 2px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65em; color: #aaa;
     }
 
     .link-row-info { flex: 1; min-width: 0; }
 
     .link-row-headline {
-      font-size: 0.9em;
-      font-weight: bold;
-      color: var(--navy);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: 0.9em; font-weight: bold; color: var(--navy);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
 
-    .link-row-meta {
-      font-size: 0.75em;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
+    .link-row-meta { font-size: 0.75em; color: var(--muted); margin-top: 2px; }
     .link-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
-    /* ── Add/Edit modal overlay ── */
+    /* ── Modal ── */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -295,8 +394,7 @@
     }
 
     .modal-title {
-      font-size: 1.1em;
-      font-weight: bold;
+      font-size: 1.05em; font-weight: bold;
       margin-bottom: 18px;
       color: var(--red);
       letter-spacing: 1px;
@@ -307,35 +405,21 @@
       position: absolute;
       top: 14px; right: 16px;
       background: none; border: none;
-      font-size: 1.4em;
-      cursor: pointer;
+      font-size: 1.4em; cursor: pointer;
       color: var(--muted);
     }
 
     /* ── Image picker ── */
-    .image-options {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-    }
+    .image-options { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
 
     .image-option {
-      position: relative;
       cursor: pointer;
       border: 3px solid transparent;
-      border-radius: 3px;
-      overflow: hidden;
+      border-radius: 3px; overflow: hidden;
     }
 
     .image-option.selected { border-color: var(--red); }
-
-    .image-option img {
-      width: 140px;
-      height: 90px;
-      object-fit: cover;
-      display: block;
-    }
+    .image-option img { width: 140px; height: 90px; object-fit: cover; display: block; }
 
     /* ── Headline options ── */
     .headline-option {
@@ -354,63 +438,33 @@
 
     /* ── Section labels ── */
     .section-label {
-      font-size: 0.72em;
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--muted);
-      margin: 16px 0 8px;
+      font-size: 0.72em; font-weight: bold;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: var(--muted); margin: 16px 0 8px;
     }
 
-    /* ── Category grid ── */
-    .category-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
-    }
+    /* ── Category / position grids ── */
+    .category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .position-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
 
-    .cat-btn {
-      padding: 8px 10px;
+    .cat-btn, .pos-btn {
       border: 2px solid var(--border);
-      border-radius: 3px;
-      background: none;
-      cursor: pointer;
-      font-size: 0.85em;
-      text-align: left;
+      border-radius: 3px; background: none;
+      cursor: pointer; font-size: 0.85em;
       transition: border-color 0.15s, background 0.15s;
     }
 
-    .cat-btn:hover { border-color: #aaa; background: #fafafa; }
-    .cat-btn.selected { border-color: var(--red); background: #fff5f5; }
-
-    /* ── Position selector ── */
-    .position-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .pos-btn {
-      padding: 10px 8px;
-      border: 2px solid var(--border);
-      border-radius: 3px;
-      background: none;
-      cursor: pointer;
-      font-size: 0.82em;
-      text-align: center;
-      line-height: 1.3;
-      transition: border-color 0.15s, background 0.15s;
-    }
-
-    .pos-btn:hover { border-color: #aaa; background: #fafafa; }
-    .pos-btn.selected { border-color: var(--red); background: #fff5f5; }
+    .cat-btn { padding: 8px 10px; text-align: left; }
+    .pos-btn { padding: 10px 8px; text-align: center; line-height: 1.3; }
     .pos-btn strong { display: block; font-size: 1.1em; margin-bottom: 2px; }
+
+    .cat-btn:hover, .pos-btn:hover { border-color: #aaa; background: #fafafa; }
+    .cat-btn.selected, .pos-btn.selected { border-color: var(--red); background: #fff5f5; }
 
     /* ── Spinner ── */
     .spinner {
       display: inline-block;
-      width: 14px; height: 14px;
+      width: 13px; height: 13px;
       border: 2px solid rgba(255,255,255,0.4);
       border-top-color: #fff;
       border-radius: 50%;
@@ -418,18 +472,17 @@
       vertical-align: middle;
     }
 
+    .spinner-dark { border-color: rgba(0,0,0,0.12); border-top-color: var(--red); }
+
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Misc ── */
-    .row { display: flex; gap: 10px; align-items: center; }
-    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
-    .text-muted { color: var(--muted); font-size: 0.85em; }
-    .mt8 { margin-top: 8px; }
-    .mt14 { margin-top: 14px; }
-
-    @media (max-width: 600px) {
-      .story-item { flex-wrap: wrap; }
-      .story-source { min-width: auto; }
+    /* ── Mobile ── */
+    @media (max-width: 700px) {
+      html, body { overflow: auto; }
+      .content-area { overflow: auto; height: auto; }
+      #tab-browse { flex-direction: column !important; height: auto; }
+      .browse-left { width: 100%; border-right: none; border-bottom: 2px solid var(--border); max-height: 45vh; }
+      .browse-right { min-height: 50vh; }
       .position-grid { grid-template-columns: 1fr; }
       .category-grid { grid-template-columns: 1fr; }
     }
@@ -438,66 +491,114 @@
 <body>
 
 <header>
-  <h1>Headline Hit <span style="color:#666;font-size:0.8em;letter-spacing:0">— Admin</span></h1>
+  <h1>Headline Hit <span style="color:#555;font-size:0.8em;letter-spacing:0"> — Admin</span></h1>
   <span id="header-count">Loading...</span>
 </header>
 
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('browse')">📰 Browse</button>
-  <button class="tab-btn" onclick="switchTab('add')">➕ Add URL</button>
-  <button class="tab-btn" onclick="switchTab('manage')">✏️ Manage</button>
+  <button class="tab-btn active" onclick="switchTab('browse', this)">📰 Browse</button>
+  <button class="tab-btn" onclick="switchTab('add', this)">➕ Add URL</button>
+  <button class="tab-btn" onclick="switchTab('manage', this)">✏️ Manage</button>
 </div>
 
-<!-- BROWSE TAB -->
-<div class="tab-panel active" id="tab-browse">
-  <div class="card">
-    <div class="filter-bar">
-      <input type="text" id="story-search" placeholder="Filter headlines..." oninput="filterStories()">
-      <select id="source-filter" onchange="filterStories()" style="width:auto;min-width:150px;">
-        <option value="">All sources</option>
-      </select>
-      <button class="btn btn-red" onclick="loadStories()" id="fetch-btn">Fetch Stories</button>
+<div class="content-area">
+
+  <!-- BROWSE TAB -->
+  <div class="tab-panel active" id="tab-browse">
+
+    <div class="browse-left">
+      <div class="browse-toolbar">
+        <div class="browse-toolbar-row">
+          <input type="text" id="story-search" placeholder="Search headlines..." oninput="filterStories()">
+          <button class="btn btn-red btn-sm" onclick="loadStories()" id="fetch-btn">Fetch</button>
+        </div>
+        <div class="browse-toolbar-row">
+          <select id="source-filter" onchange="filterStories()">
+            <option value="">All sources</option>
+          </select>
+        </div>
+        <div id="story-count"></div>
+      </div>
+      <div id="story-list">
+        <div style="padding:20px;color:var(--muted);font-size:0.85em;">
+          Click "Fetch" to load headlines from all RSS feeds.
+        </div>
+      </div>
     </div>
-    <div class="text-muted" id="story-count"></div>
-  </div>
-  <div id="story-list"><p class="text-muted">Click "Fetch Stories" to load headlines from all RSS feeds.</p></div>
-</div>
 
-<!-- ADD URL TAB -->
-<div class="tab-panel" id="tab-add">
-  <div class="card">
-    <div class="card-title">Add a link manually</div>
-    <div class="field">
-      <label>Article URL</label>
-      <div class="row">
-        <input type="url" id="manual-url" placeholder="https://..." style="flex:1">
-        <button class="btn btn-red" onclick="startAddFromUrl()">Go</button>
+    <div class="browse-right">
+      <div class="preview-toolbar">
+        <span id="preview-title">Select a story to preview</span>
+        <button class="btn btn-red btn-sm" id="preview-add-btn" style="display:none" onclick="addPreviewStory()">+ Add This Story</button>
+        <a id="preview-open-btn" href="#" target="_blank" class="btn btn-outline btn-sm" style="display:none">↗ Open</a>
+      </div>
+
+      <div id="preview-empty">
+        <div class="empty-icon">📰</div>
+        <div>Click any headline to preview it here</div>
+      </div>
+
+      <iframe id="preview-frame"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox">
+      </iframe>
+
+      <div id="preview-blocked">
+        <div class="blocked-icon">🚫</div>
+        <div class="blocked-title">Preview not available</div>
+        <div class="blocked-msg">
+          This website blocks previews inside other pages — a common security policy.
+          Use <strong>↗ Open</strong> to read the article in a new tab, then come back and click <strong>+ Add This Story</strong>.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ADD URL TAB -->
+  <div class="tab-panel" id="tab-add">
+    <div class="tab-scroll">
+      <div class="tab-scroll-inner">
+        <div class="card">
+          <div class="card-title">Add a link manually</div>
+          <div class="field">
+            <label>Article URL</label>
+            <div class="row">
+              <input type="url" id="manual-url" placeholder="https://..." style="flex:1">
+              <button class="btn btn-red" onclick="startAddFromUrl()">Go</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- MANAGE TAB -->
-<div class="tab-panel" id="tab-manage">
-  <div class="card">
-    <div class="card-title">Current links on site</div>
-    <div class="row" style="margin-bottom:12px;">
-      <button class="btn btn-red btn-sm" onclick="loadCurrentLinks()">↺ Refresh</button>
+  <!-- MANAGE TAB -->
+  <div class="tab-panel" id="tab-manage">
+    <div class="tab-scroll">
+      <div class="tab-scroll-inner">
+        <div class="card">
+          <div class="card-title">Current links on site</div>
+          <div class="row" style="margin-bottom:12px;">
+            <button class="btn btn-red btn-sm" onclick="loadCurrentLinks()">↺ Refresh</button>
+          </div>
+          <div id="current-links-list">
+            <p class="text-muted">Click Refresh to load current links.</p>
+          </div>
+        </div>
+      </div>
     </div>
-    <div id="current-links-list"><p class="text-muted">Click Refresh to load current links.</p></div>
   </div>
+
 </div>
 
-<!-- Status bar -->
 <div id="status-bar">Ready</div>
 
-<!-- ADD / EDIT MODAL -->
+<!-- MODAL -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">×</button>
     <div class="modal-title" id="modal-title">Add Story</div>
 
-    <!-- Step 1: Images -->
     <div id="step-images">
       <div class="section-label">Step 1 — Choose Image</div>
       <div id="image-loading" class="text-muted">Fetching preview images...</div>
@@ -510,10 +611,9 @@
         <button class="btn btn-outline btn-sm" onclick="clearImage()">No image</button>
       </div>
       <hr class="divider">
-      <button class="btn btn-red" onclick="goToHeadlines()" id="btn-to-headlines">Next: Headlines →</button>
+      <button class="btn btn-red" onclick="goToHeadlines()">Next: Headlines →</button>
     </div>
 
-    <!-- Step 2: Headlines -->
     <div id="step-headlines" style="display:none;">
       <div class="section-label">Step 2 — Choose Headline</div>
       <div id="headline-loading" class="text-muted">Generating headline options...</div>
@@ -525,11 +625,10 @@
       <hr class="divider">
       <div class="row">
         <button class="btn btn-outline btn-sm" onclick="goToImages()">← Back</button>
-        <button class="btn btn-red" onclick="goToPosition()" id="btn-to-position">Next: Placement →</button>
+        <button class="btn btn-red" onclick="goToPosition()">Next: Placement →</button>
       </div>
     </div>
 
-    <!-- Step 3: Position + Category -->
     <div id="step-position" style="display:none;">
       <div class="section-label">Step 3 — Placement</div>
       <div class="position-grid" id="position-grid">
@@ -539,7 +638,7 @@
       </div>
 
       <div class="section-label">Category</div>
-      <div class="category-grid" id="category-grid">
+      <div class="category-grid">
         <button class="cat-btn" onclick="selectCategory(0)">🏦 US Politics</button>
         <button class="cat-btn" onclick="selectCategory(1)">📺 News Media</button>
         <button class="cat-btn" onclick="selectCategory(2)">🎭 Society & Culture</button>
@@ -558,35 +657,36 @@
         <button class="btn btn-green" onclick="submitLink()" id="btn-submit">✓ Publish</button>
       </div>
     </div>
+
   </div>
 </div>
 
 <script>
   const WORKER = 'https://news-worker.headlinehitnews.workers.dev';
-  const SECRET = 'YOUR_BOT_SECRET_HERE'; // same value as BOT_SECRET in Railway + Cloudflare Worker
+  const SECRET = 'hh_secret_2024_xk92'; // same value as BOT_SECRET in Railway + Cloudflare Worker
 
   const CATEGORIES = [
-    { label: 'US Politics',       emoji: '🏦' },
-    { label: 'News Media',        emoji: '📺' },
-    { label: 'Society & Culture', emoji: '🎭' },
-    { label: 'Sports News',       emoji: '🏆' },
-    { label: 'Tech News',         emoji: '💻' },
-    { label: 'Entertainment',     emoji: '🎬' },
-    { label: 'World News',        emoji: '🌍' },
-    { label: 'Economy & Business',emoji: '📈' },
-    { label: 'Crime & Law',       emoji: '⚖️' },
-    { label: 'Health & Science',  emoji: '🧬' },
+    { label: 'US Politics',        emoji: '🏦' },
+    { label: 'News Media',         emoji: '📺' },
+    { label: 'Society & Culture',  emoji: '🎭' },
+    { label: 'Sports News',        emoji: '🏆' },
+    { label: 'Tech News',          emoji: '💻' },
+    { label: 'Entertainment',      emoji: '🎬' },
+    { label: 'World News',         emoji: '🌍' },
+    { label: 'Economy & Business', emoji: '📈' },
+    { label: 'Crime & Law',        emoji: '⚖️' },
+    { label: 'Health & Science',   emoji: '🧬' },
   ];
 
   const authHeader = { 'Authorization': 'Bearer ' + SECRET, 'Content-Type': 'application/json' };
 
-  // State
   let allStories = [];
   let currentLinks = [];
   let modalState = {};
-  let editIndex = null; // null = add mode, number = edit mode
+  let editIndex = null;
+  let activeStory = null;
 
-  // ── Status bar ──────────────────────────────────────────────────
+  // ── Status bar ────────────────────────────────────────────────────
   let statusTimer;
   function status(msg, type = '', persist = false) {
     const bar = document.getElementById('status-bar');
@@ -596,16 +696,29 @@
     if (!persist) statusTimer = setTimeout(() => { bar.textContent = 'Ready'; bar.className = ''; }, 4000);
   }
 
-  // ── Tabs ────────────────────────────────────────────────────────
-  function switchTab(name) {
+  // ── Tabs ──────────────────────────────────────────────────────────
+  function switchTab(name, btn) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
-    event.target.classList.add('active');
+    btn.classList.add('active');
     if (name === 'manage') loadCurrentLinks();
   }
 
-  // ── Load current links ──────────────────────────────────────────
+  // ── Time formatting ───────────────────────────────────────────────
+  function timeAgo(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d)) return '';
+    const mins = Math.floor((Date.now() - d) / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    return Math.floor(hrs / 24) + 'd ago';
+  }
+
+  // ── Load current links ────────────────────────────────────────────
   async function loadCurrentLinks() {
     try {
       const res = await fetch(WORKER + '/links');
@@ -632,7 +745,9 @@
           : `<div class="link-row-thumb-empty">no img</div>`}
         <div class="link-row-info">
           <div class="link-row-headline" title="${esc(link.headline)}">${esc(link.headline)}</div>
-          <div class="link-row-meta">${link.emoji || ''} ${esc(link.category || '')} &nbsp;·&nbsp; <a href="${esc(link.url)}" target="_blank">${getDomain(link.url)}</a></div>
+          <div class="link-row-meta">${link.emoji || ''} ${esc(link.category || '')} &nbsp;·&nbsp;
+            <a href="${esc(link.url)}" target="_blank">${getDomain(link.url)}</a>
+          </div>
         </div>
         <div class="link-row-actions">
           <button class="btn btn-outline btn-sm" onclick="startEdit(${i})">Edit</button>
@@ -642,19 +757,21 @@
     `).join('');
   }
 
-  // ── Browse / RSS ─────────────────────────────────────────────────
+  // ── Fetch RSS stories ─────────────────────────────────────────────
   async function loadStories() {
     const btn = document.getElementById('fetch-btn');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Fetching...';
-    status('Fetching stories from all RSS feeds...', '', true);
-    document.getElementById('story-list').innerHTML = '<p class="text-muted">Loading — this takes 10–20 seconds...</p>';
+    btn.innerHTML = '<span class="spinner"></span>';
+    status('Fetching from all RSS feeds...', '', true);
+    document.getElementById('story-list').innerHTML =
+      '<div style="padding:20px;color:var(--muted);font-size:0.85em;">' +
+      '<span class="spinner spinner-dark"></span> Loading — takes 10–20 seconds...</div>';
 
     try {
-      // Get existing URLs to dedupe
       const linksRes = await fetch(WORKER + '/links');
       const linksData = await linksRes.json();
       currentLinks = linksData.links || [];
+      document.getElementById('header-count').textContent = currentLinks.length + ' links live';
       const existingUrls = currentLinks.map(l => l.url);
 
       const res = await fetch(WORKER + '/admin/fetch-rss', {
@@ -665,17 +782,24 @@
       const data = await res.json();
       if (data.error) throw new Error(data.error);
 
-      allStories = data.stories;
+      // Sort by pubDate — most recent first
+      allStories = data.stories.sort((a, b) => {
+        const da = a.pubDate ? new Date(a.pubDate) : new Date(0);
+        const db = b.pubDate ? new Date(b.pubDate) : new Date(0);
+        return db - da;
+      });
+
       buildSourceFilter();
       filterStories();
       status('Loaded ' + allStories.length + ' stories', 'ok');
     } catch (e) {
       status('Failed: ' + e.message, 'error');
-      document.getElementById('story-list').innerHTML = '<p class="text-muted">Error loading stories. Check the Worker is deployed and try again.</p>';
+      document.getElementById('story-list').innerHTML =
+        '<div style="padding:20px;color:var(--muted);font-size:0.85em;">Error loading stories. Check Worker is deployed and try again.</div>';
     }
 
     btn.disabled = false;
-    btn.textContent = 'Fetch Stories';
+    btn.textContent = 'Fetch';
   }
 
   function buildSourceFilter() {
@@ -692,26 +816,85 @@
       (!q || s.headline.toLowerCase().includes(q) || s.source.toLowerCase().includes(q)) &&
       (!src || s.source === src)
     );
-    document.getElementById('story-count').textContent = filtered.length + ' of ' + allStories.length + ' stories';
+    document.getElementById('story-count').textContent =
+      filtered.length + ' of ' + allStories.length + ' stories';
+
     const el = document.getElementById('story-list');
     if (filtered.length === 0) {
-      el.innerHTML = '<p class="text-muted">No matching stories.</p>';
+      el.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:0.85em;">No matching stories.</div>';
       return;
     }
-    el.innerHTML = filtered.map((s, i) => `
-      <div class="story-item">
-        <div class="story-source">${esc(s.source)}</div>
-        <div class="story-headline">
-          <a href="${esc(s.url)}" target="_blank">${esc(s.headline)}</a>
+
+    el.innerHTML = filtered.map(s => `
+      <div class="story-item${activeStory && activeStory.url === s.url ? ' active' : ''}"
+           onclick='previewStory(${JSON.stringify(s)}, this)'>
+        <div class="story-meta">
+          <span class="story-source">${esc(s.source)}</span>
+          <span class="story-time">${timeAgo(s.pubDate)}</span>
         </div>
-        <div class="story-actions">
-          <button class="btn btn-red btn-sm" onclick='startAddFromStory(${JSON.stringify(s)})'>Add</button>
-        </div>
+        <div class="story-headline-text">${esc(s.headline)}</div>
       </div>
     `).join('');
   }
 
-  // ── Add from URL tab ────────────────────────────────────────────
+  // ── Preview pane ──────────────────────────────────────────────────
+  function previewStory(story, el) {
+    document.querySelectorAll('.story-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+    activeStory = story;
+
+    document.getElementById('preview-title').textContent = story.headline;
+    document.getElementById('preview-title').style.color = '';
+    document.getElementById('preview-add-btn').style.display = '';
+    const openBtn = document.getElementById('preview-open-btn');
+    openBtn.href = story.url;
+    openBtn.style.display = '';
+
+    // Reset panes
+    document.getElementById('preview-empty').style.display = 'none';
+    document.getElementById('preview-blocked').style.display = 'none';
+
+    const frame = document.getElementById('preview-frame');
+    frame.style.display = 'flex';
+    frame.style.flex = '1';
+    frame.src = 'about:blank';
+
+    let resolved = false;
+
+    function markBlocked() {
+      if (resolved) return;
+      resolved = true;
+      frame.style.display = 'none';
+      document.getElementById('preview-blocked').style.display = 'flex';
+    }
+
+    frame.onload = () => {
+      resolved = true;
+      // If src came back as about:blank after setting the real URL, it was blocked
+      try {
+        const loc = frame.contentWindow.location.href;
+        if (loc === 'about:blank') markBlocked();
+      } catch (e) {
+        // Cross-origin — frame loaded fine, just can't read it
+        resolved = true;
+      }
+    };
+
+    frame.onerror = () => markBlocked();
+
+    // Timeout fallback — if frame never fires onload after 9s, assume blocked
+    resolved = false;
+    setTimeout(() => { if (!resolved) markBlocked(); }, 9000);
+
+    frame.src = story.url;
+  }
+
+  function addPreviewStory() {
+    if (!activeStory) return;
+    startAddFromStory(activeStory);
+  }
+
+  // ── Add from URL tab ──────────────────────────────────────────────
   function startAddFromUrl() {
     const url = document.getElementById('manual-url').value.trim();
     if (!url.startsWith('http')) { status('Please enter a valid URL', 'error'); return; }
@@ -719,7 +902,7 @@
     document.getElementById('manual-url').value = '';
   }
 
-  // ── Open modal for add ──────────────────────────────────────────
+  // ── Open modal for add ────────────────────────────────────────────
   function startAddFromStory(story) {
     editIndex = null;
     modalState = {
@@ -737,7 +920,7 @@
     fetchHeadlines(story.url, story.headline || '');
   }
 
-  // ── Open modal for edit ─────────────────────────────────────────
+  // ── Open modal for edit ───────────────────────────────────────────
   function startEdit(index) {
     const link = currentLinks[index];
     editIndex = index;
@@ -746,29 +929,22 @@
       originalHeadline: link.headline,
       image: link.image || null,
       headline: link.headline,
-      position: null, // not changed during edit
+      position: null,
       categoryIndex: CATEGORIES.findIndex(c => c.label === link.category),
     };
     document.getElementById('modal-title').textContent = 'Edit Story';
     openModal();
     showStep('images');
 
-    // Pre-populate image
-    const opts = document.getElementById('image-options');
-    opts.innerHTML = '';
+    document.getElementById('image-options').innerHTML = '';
     document.getElementById('image-loading').textContent = '';
-    if (link.image) {
-      addImageOption(link.image, true);
-    }
+    if (link.image) addImageOption(link.image, true);
     document.getElementById('custom-image-url').value = '';
-
-    // Pre-populate headline
     document.getElementById('custom-headline').value = link.headline;
     document.getElementById('headline-loading').textContent = '';
     document.getElementById('headline-options').innerHTML = '';
     fetchHeadlines(link.url, link.headline);
 
-    // Pre-select category
     if (modalState.categoryIndex >= 0) {
       document.querySelectorAll('.cat-btn').forEach((b, i) => {
         b.classList.toggle('selected', i === modalState.categoryIndex);
@@ -776,16 +952,13 @@
     }
   }
 
-  // ── Modal helpers ───────────────────────────────────────────────
-  function openModal() {
-    document.getElementById('modal-overlay').classList.add('open');
-  }
+  // ── Modal helpers ─────────────────────────────────────────────────
+  function openModal() { document.getElementById('modal-overlay').classList.add('open'); }
 
   function closeModal() {
     document.getElementById('modal-overlay').classList.remove('open');
     editIndex = null;
     modalState = {};
-    // Reset modal UI
     document.getElementById('image-options').innerHTML = '';
     document.getElementById('headline-options').innerHTML = '';
     document.getElementById('custom-image-url').value = '';
@@ -802,7 +975,7 @@
     });
   }
 
-  // ── Fetch images ────────────────────────────────────────────────
+  // ── Fetch images ──────────────────────────────────────────────────
   async function fetchImages(url) {
     document.getElementById('image-loading').textContent = 'Fetching preview images...';
     document.getElementById('image-options').innerHTML = '';
@@ -852,7 +1025,7 @@
     modalState.image = null;
   }
 
-  // ── Fetch headlines ─────────────────────────────────────────────
+  // ── Fetch headlines ───────────────────────────────────────────────
   async function fetchHeadlines(url, fallbackHeadline) {
     document.getElementById('headline-loading').textContent = 'Generating AI headline options...';
     document.getElementById('headline-options').innerHTML = '';
@@ -892,22 +1065,15 @@
     }
   }
 
-  // ── Step navigation ─────────────────────────────────────────────
+  // ── Step navigation ───────────────────────────────────────────────
   function goToImages() { showStep('images'); }
-
   function goToHeadlines() { showStep('headlines'); }
 
   function goToPosition() {
-    // Resolve headline from custom field if nothing selected
     const custom = document.getElementById('custom-headline').value.trim();
     if (custom.length > 3) modalState.headline = custom;
     if (!modalState.headline) { status('Please choose or write a headline', 'error'); return; }
-    if (editIndex !== null) {
-      // Edit mode: skip position, go straight to position step but hide position picker
-      document.getElementById('position-grid').style.display = 'none';
-    } else {
-      document.getElementById('position-grid').style.display = '';
-    }
+    document.getElementById('position-grid').style.display = editIndex !== null ? 'none' : '';
     showStep('position');
   }
 
@@ -923,7 +1089,7 @@
     document.querySelectorAll('.cat-btn').forEach((b, j) => b.classList.toggle('selected', i === j));
   }
 
-  // ── Submit (add or edit) ────────────────────────────────────────
+  // ── Submit ────────────────────────────────────────────────────────
   async function submitLink() {
     if (editIndex === null && !modalState.position) { status('Please choose a placement', 'error'); return; }
     if (modalState.categoryIndex === null || modalState.categoryIndex < 0) { status('Please choose a category', 'error'); return; }
@@ -949,19 +1115,16 @@
       if (modalState.image) newLink.image = modalState.image;
 
       if (editIndex !== null) {
-        // Edit: replace in place, preserve image if not changed
         const existing = links[editIndex];
         if (!newLink.image && existing.image) newLink.image = existing.image;
         links[editIndex] = newLink;
       } else {
-        // Add: insert by position
         if (modalState.position === '1') {
           links.unshift(newLink);
         } else if (modalState.position === '2') {
           links.splice(1, 0, newLink);
         } else {
-          const insertAt = Math.min(11, links.length);
-          links.splice(insertAt, 0, newLink);
+          links.splice(Math.min(11, links.length), 0, newLink);
         }
         if (links.length > 50) links.splice(50);
       }
@@ -986,7 +1149,7 @@
     btn.textContent = '✓ Publish';
   }
 
-  // ── Delete ──────────────────────────────────────────────────────
+  // ── Delete ────────────────────────────────────────────────────────
   async function deleteLink(index) {
     const link = currentLinks[index];
     if (!confirm('Delete this link?\n\n"' + link.headline + '"')) return;
@@ -1006,16 +1169,18 @@
     }
   }
 
-  // ── Utilities ───────────────────────────────────────────────────
+  // ── Utilities ─────────────────────────────────────────────────────
   function getDomain(url) {
     try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return ''; }
   }
 
   function esc(str) {
-    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(str || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  // ── Init ─────────────────────────────────────────────────────────
+  // ── Init ──────────────────────────────────────────────────────────
   loadCurrentLinks();
 </script>
 
