@@ -561,6 +561,11 @@
     <!-- Bottom overflow grid -->
     <div class="bottom-divider" id="bottom-section" style="display:none;">
       <div class="links-grid" id="links-grid"></div>
+      <div style="text-align:center;margin-top:24px;">
+        <button id="load-more-btn" onclick="loadMore()" style="display:none;padding:10px 28px;background:#111111;color:#ffffff;border:none;font-family:Arial,sans-serif;font-size:0.9em;font-weight:bold;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:3px;">
+          Load More
+        </button>
+      </div>
     </div>
 
   </div>
@@ -574,6 +579,9 @@
     const WORKER = 'https://news-worker.headlinehitnews.workers.dev';
     const OTHER_COL_MAX = 10;
     const TOP_COL_MAX = 11; // 1 hero + 4 sub + 6 row
+    const PAGE_SIZE = 100;  // links shown per page
+    let allLinks = [];      // full dataset
+    let currentPage = 0;    // how many pages loaded so far
 
     function getDomain(url) {
       try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return ''; }
@@ -613,6 +621,42 @@
       return a;
     }
 
+    function renderOverflowBatch(overflowLinks, startIdx, count) {
+      const grid = document.getElementById('links-grid');
+      const batch = overflowLinks.slice(startIdx, startIdx + count);
+      batch.forEach(item => {
+        const div = document.createElement('div'); div.className = 'link-item';
+        const prefix = item.emoji || '&#9654;';
+        const domain = getDomain(item.url);
+        const a = document.createElement('a');
+        a.href = item.url; a.target = '_blank';
+        a.innerHTML = prefix + ' ' + item.headline + (domain ? ' <span class="inline-source">- ' + domain + '</span>' : '');
+        div.appendChild(a);
+        grid.appendChild(div);
+      });
+      return batch.length;
+    }
+
+    function updateLoadMoreBtn(overflowLinks, loadedCount) {
+      const btn = document.getElementById('load-more-btn');
+      const remaining = overflowLinks.length - loadedCount;
+      if (remaining > 0) {
+        btn.style.display = '';
+        btn.textContent = 'Load More (' + remaining + ' older stories)';
+      } else {
+        btn.style.display = 'none';
+      }
+    }
+
+    let overflowAll = [];
+    let overflowLoaded = 0;
+
+    function loadMore() {
+      const newCount = renderOverflowBatch(overflowAll, overflowLoaded, PAGE_SIZE);
+      overflowLoaded += newCount;
+      updateLoadMoreBtn(overflowAll, overflowLoaded);
+    }
+
     fetch(WORKER + '/links')
       .then(r => r.json())
       .then(data => {
@@ -620,22 +664,21 @@
           'Last updated: ' + new Date(data.lastUpdated).toLocaleString();
 
         const links = data.links || [];
+        allLinks = links;
 
         // Split by position — default to 'top' for backward compat
         const topLinks = links.filter(l => !l.position || l.position === 'top');
         const otherLinks = links.filter(l => l.position === 'other');
 
-        // Overflow: top beyond 11, other beyond 10, mixed in original order
-        const topOverflow = topLinks.slice(TOP_COL_MAX);
-        const otherOverflow = otherLinks.slice(OTHER_COL_MAX);
-
-        // Merge overflow preserving relative order by original index
-        const overflowLinks = links.filter((l, i) => {
+        // Overflow: anything beyond the fixed column slots, preserving original order
+        const overflowLinks = links.filter(l => {
           if (!l.position || l.position === 'top') {
             return topLinks.indexOf(l) >= TOP_COL_MAX;
           }
           return otherLinks.indexOf(l) >= OTHER_COL_MAX;
         });
+
+        overflowAll = overflowLinks;
 
         // ── Hero (top[0]) ──
         const topDiv = document.getElementById('top-story');
@@ -688,20 +731,11 @@
           otherEl.appendChild(div);
         });
 
-        // ── Bottom overflow grid ──
+        // ── Bottom overflow grid — first PAGE_SIZE ──
         if (overflowLinks.length > 0) {
           document.getElementById('bottom-section').style.display = '';
-          const grid = document.getElementById('links-grid');
-          overflowLinks.forEach(item => {
-            const div = document.createElement('div'); div.className = 'link-item';
-            const prefix = item.emoji || '&#9654;';
-            const domain = getDomain(item.url);
-            const a = document.createElement('a');
-            a.href = item.url; a.target = '_blank';
-            a.innerHTML = prefix + ' ' + item.headline + (domain ? ' <span class="inline-source">- ' + domain + '</span>' : '');
-            div.appendChild(a);
-            grid.appendChild(div);
-          });
+          overflowLoaded = renderOverflowBatch(overflowAll, 0, PAGE_SIZE);
+          updateLoadMoreBtn(overflowAll, overflowLoaded);
         }
       })
       .catch(() => {
