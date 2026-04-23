@@ -1174,9 +1174,13 @@
 
   // ── Submit ────────────────────────────────────────────────────────
   async function submitLink() {
-    if (editIndex === null && !modalState.position) { status('Please choose Top Story or Other Stories', 'error'); return; }
-    if (modalState.categoryIndex === null || modalState.categoryIndex < 0) { status('Please choose a category', 'error'); return; }
-    if (!modalState.headline) { status('Please choose or write a headline', 'error'); return; }
+    // Always capture custom headline field value at submit time
+    const customVal = document.getElementById('custom-headline').value.trim();
+    if (customVal.length > 0) modalState.headline = customVal;
+
+    if (editIndex === null && !modalState.position) { alert('Please choose Top Story or Other Stories'); return; }
+    if (modalState.categoryIndex === null || modalState.categoryIndex < 0) { alert('Please choose a category'); return; }
+    if (!modalState.headline) { alert('Please choose or write a headline'); return; }
 
     const btn = document.getElementById('btn-submit');
     btn.disabled = true;
@@ -1231,6 +1235,12 @@
       closeModal();
       status(editIndex !== null ? 'Link updated!' : 'Link published!', 'ok');
       renderCurrentLinks();
+
+      // If this came from approving a submission, dismiss it now
+      if (window._pendingSubmissionId) {
+        await dismissSubmission(window._pendingSubmissionId);
+        window._pendingSubmissionId = null;
+      }
     } catch (e) {
       status('Save failed: ' + e.message, 'error');
     }
@@ -1369,14 +1379,7 @@
   }
 
   // Auto-dismiss submission after publishing if one was approved
-  const origSubmitLink = submitLink;
-  async function submitLink() {
-    await origSubmitLink();
-    if (window._pendingSubmissionId) {
-      await dismissSubmission(window._pendingSubmissionId);
-      window._pendingSubmissionId = null;
-    }
-  }
+  // (handled inside submitLink directly via window._pendingSubmissionId check)
 
   // ── Init ──────────────────────────────────────────────────────────
   loadCurrentLinks();
