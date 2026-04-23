@@ -609,6 +609,15 @@
       <div class="field mt8">
         <label>Or paste a direct image URL</label>
         <input type="url" id="custom-image-url" placeholder="https://..." oninput="onCustomImageUrl()">
+        <div id="custom-image-preview" style="display:none;margin-top:8px;">
+          <img id="custom-image-preview-img"
+            style="max-width:200px;max-height:120px;object-fit:cover;border-radius:3px;border:2px solid var(--border);"
+            alt="Preview">
+          <div id="custom-image-preview-error"
+            style="display:none;font-size:0.8em;color:var(--danger);margin-top:4px;">
+            &#9888; Image failed to load — check the URL
+          </div>
+        </div>
       </div>
       <div class="row mt8">
         <button class="btn btn-outline btn-sm" onclick="clearImage()">No image</button>
@@ -939,6 +948,10 @@
     document.getElementById('image-options').innerHTML = '';
     document.getElementById('headline-options').innerHTML = '';
     document.getElementById('custom-image-url').value = '';
+    document.getElementById('custom-image-preview').style.display = 'none';
+    document.getElementById('custom-image-preview-img').src = '';
+    document.getElementById('custom-image-preview-img').style.borderColor = 'var(--border)';
+    document.getElementById('custom-image-preview-error').style.display = 'none';
     document.getElementById('custom-headline').value = '';
     document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
     document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('selected'));
@@ -990,15 +1003,42 @@
 
   function onCustomImageUrl() {
     const val = document.getElementById('custom-image-url').value.trim();
+    const preview = document.getElementById('custom-image-preview');
+    const previewImg = document.getElementById('custom-image-preview-img');
+    const previewErr = document.getElementById('custom-image-preview-error');
+
     if (val.startsWith('http')) {
       document.querySelectorAll('.image-option').forEach(o => o.classList.remove('selected'));
       modalState.image = val;
+
+      // Show preview
+      preview.style.display = '';
+      previewErr.style.display = 'none';
+      previewImg.style.display = '';
+      previewImg.src = val;
+
+      previewImg.onload = () => {
+        previewImg.style.borderColor = 'var(--success)';
+        previewErr.style.display = 'none';
+      };
+      previewImg.onerror = () => {
+        previewImg.style.display = 'none';
+        previewErr.style.display = '';
+        modalState.image = null; // Don't allow a broken image through
+      };
+    } else {
+      preview.style.display = 'none';
+      if (!val) modalState.image = null;
     }
   }
 
   function clearImage() {
     document.querySelectorAll('.image-option').forEach(o => o.classList.remove('selected'));
     document.getElementById('custom-image-url').value = '';
+    document.getElementById('custom-image-preview').style.display = 'none';
+    document.getElementById('custom-image-preview-img').src = '';
+    document.getElementById('custom-image-preview-img').style.borderColor = 'var(--border)';
+    document.getElementById('custom-image-preview-error').style.display = 'none';
     modalState.image = null;
   }
 
