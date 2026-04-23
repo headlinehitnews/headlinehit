@@ -984,6 +984,15 @@
     document.getElementById('modal-title').textContent = 'Edit Story';
     openModal();
     showStep('images');
+    // Pre-select current position
+    const currentPosition = link.position || 'top';
+    modalState.position = currentPosition;
+    // Highlight the correct pos-btn once step-position is shown
+    setTimeout(() => {
+      document.querySelectorAll('.pos-btn').forEach(b => {
+        b.classList.toggle('selected', b.getAttribute('onclick').includes("'" + currentPosition + "'"));
+      });
+    }, 50);
 
     document.getElementById('image-options').innerHTML = '';
     document.getElementById('image-loading').textContent = '';
@@ -1156,7 +1165,6 @@
     const custom = document.getElementById('custom-headline').value.trim();
     if (custom.length > 3) modalState.headline = custom;
     if (!modalState.headline) { status('Please choose or write a headline', 'error'); return; }
-    document.getElementById('position-grid').style.display = editIndex !== null ? 'none' : '';
     showStep('position');
   }
 
@@ -1178,9 +1186,9 @@
     const customVal = document.getElementById('custom-headline').value.trim();
     if (customVal.length > 0) modalState.headline = customVal;
 
-    if (editIndex === null && !modalState.position) { alert('Please choose Top Story or Other Stories'); return; }
-    if (modalState.categoryIndex === null || modalState.categoryIndex < 0) { alert('Please choose a category'); return; }
-    if (!modalState.headline) { alert('Please choose or write a headline'); return; }
+    if (editIndex === null && !modalState.position) { status('Please choose Top Story or Other Stories', 'error'); return; }
+    if (modalState.categoryIndex === null || modalState.categoryIndex < 0) { status('Please choose a category', 'error'); return; }
+    if (!modalState.headline) { status('Please choose or write a headline', 'error'); return; }
 
     const btn = document.getElementById('btn-submit');
     btn.disabled = true;
