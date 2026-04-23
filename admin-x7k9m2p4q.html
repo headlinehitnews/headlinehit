@@ -820,11 +820,15 @@
           : `<div class="link-row-thumb-empty">no img</div>`}
         <div class="link-row-info">
           <div class="link-row-headline" title="${esc(link.headline)}">${esc(link.headline)}</div>
-          <div class="link-row-meta">${link.emoji || ''} ${esc(link.category || '')} &nbsp;·&nbsp;
+          <div class="link-row-meta">
+            ${link.emoji || ''} ${esc(link.category || '')} &nbsp;·&nbsp;
             <a href="${esc(link.url)}" target="_blank">${getDomain(link.url)}</a>
+            ${link.addedAt ? '&nbsp;·&nbsp; ' + new Date(link.addedAt).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : ''}
           </div>
         </div>
         <div class="link-row-actions">
+          <button class="btn btn-outline btn-sm" onclick="moveLink(${i}, -1)" ${i === 0 ? 'disabled' : ''} title="Move up">↑</button>
+          <button class="btn btn-outline btn-sm" onclick="moveLink(${i}, 1)" ${i === currentLinks.length - 1 ? 'disabled' : ''} title="Move down">↓</button>
           <button class="btn btn-outline btn-sm" onclick="startEdit(${i})">Edit</button>
           <button class="btn btn-danger btn-sm" onclick="deleteLink(${i})">✕</button>
         </div>
@@ -1214,8 +1218,10 @@
       if (editIndex !== null) {
         const existing = links[editIndex];
         if (!newLink.image && existing.image) newLink.image = existing.image;
+        if (existing.addedAt) newLink.addedAt = existing.addedAt; // preserve original date
         links[editIndex] = newLink;
       } else {
+        newLink.addedAt = new Date().toISOString();
         // Insert at front of its position group
         if (modalState.position === 'top') {
           links.unshift(newLink);
@@ -1255,6 +1261,29 @@
 
     btn.disabled = false;
     btn.textContent = '✓ Publish';
+  }
+
+  // ── Reorder ───────────────────────────────────────────────────────
+  async function moveLink(index, direction) {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= currentLinks.length) return;
+    status('Saving...', '', true);
+    try {
+      const linksRes = await fetch(WORKER + '/links');
+      const data = await linksRes.json();
+      const links = data.links || [];
+      const temp = links[index];
+      links[index] = links[newIndex];
+      links[newIndex] = temp;
+      data.links = links;
+      data.lastUpdated = new Date().toISOString();
+      await fetch(WORKER + '/links', { method: 'POST', headers: authHeader, body: JSON.stringify(data) });
+      currentLinks = links;
+      renderCurrentLinks();
+      status('Order updated.', 'ok');
+    } catch (e) {
+      status('Failed to reorder: ' + e.message, 'error');
+    }
   }
 
   // ── Delete ────────────────────────────────────────────────────────
