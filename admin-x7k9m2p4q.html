@@ -212,27 +212,37 @@
       text-overflow: ellipsis;
     }
 
-    #preview-frame {
-      flex: 1;
-      border: none;
-      background: #fff;
-      display: none;
-    }
-
-    #preview-blocked {
+    #preview-card {
       flex: 1;
       display: none;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      flex-direction: column;
-      gap: 14px;
       padding: 40px;
+      gap: 18px;
       text-align: center;
     }
 
-    .blocked-icon { font-size: 2.8em; }
-    .blocked-title { font-size: 1.05em; font-weight: bold; }
-    .blocked-msg { font-size: 0.85em; color: var(--muted); max-width: 360px; line-height: 1.6; }
+    #preview-card-source {
+      font-size: 0.75em;
+      color: var(--red);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: bold;
+    }
+
+    #preview-card-headline {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: var(--navy);
+      line-height: 1.4;
+      max-width: 500px;
+    }
+
+    #preview-card-time {
+      font-size: 0.82em;
+      color: var(--muted);
+    }
 
     #preview-empty {
       flex: 1;
@@ -538,17 +548,10 @@
         <div>Click any headline to preview it here</div>
       </div>
 
-      <iframe id="preview-frame"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox">
-      </iframe>
-
-      <div id="preview-blocked">
-        <div class="blocked-icon">🚫</div>
-        <div class="blocked-title">Preview not available</div>
-        <div class="blocked-msg">
-          This website blocks previews inside other pages — a common security policy.
-          Use <strong>↗ Open</strong> to read the article in a new tab, then come back and click <strong>+ Add This Story</strong>.
-        </div>
+      <div id="preview-card">
+        <div id="preview-card-source"></div>
+        <div id="preview-card-headline"></div>
+        <div id="preview-card-time"></div>
       </div>
     </div>
 
@@ -843,6 +846,7 @@
     el.classList.add('active');
     activeStory = story;
 
+    // Update toolbar
     document.getElementById('preview-title').textContent = story.headline;
     document.getElementById('preview-title').style.color = '';
     document.getElementById('preview-add-btn').style.display = '';
@@ -850,43 +854,16 @@
     openBtn.href = story.url;
     openBtn.style.display = '';
 
-    // Reset panes
+    // Show card, hide empty state
     document.getElementById('preview-empty').style.display = 'none';
-    document.getElementById('preview-blocked').style.display = 'none';
+    const card = document.getElementById('preview-card');
+    card.style.display = 'flex';
+    document.getElementById('preview-card-source').textContent = story.source || getDomain(story.url);
+    document.getElementById('preview-card-headline').textContent = story.headline;
+    document.getElementById('preview-card-time').textContent = timeAgo(story.pubDate);
 
-    const frame = document.getElementById('preview-frame');
-    frame.style.display = 'flex';
-    frame.style.flex = '1';
-    frame.src = 'about:blank';
-
-    let resolved = false;
-
-    function markBlocked() {
-      if (resolved) return;
-      resolved = true;
-      frame.style.display = 'none';
-      document.getElementById('preview-blocked').style.display = 'flex';
-    }
-
-    frame.onload = () => {
-      resolved = true;
-      // If src came back as about:blank after setting the real URL, it was blocked
-      try {
-        const loc = frame.contentWindow.location.href;
-        if (loc === 'about:blank') markBlocked();
-      } catch (e) {
-        // Cross-origin — frame loaded fine, just can't read it
-        resolved = true;
-      }
-    };
-
-    frame.onerror = () => markBlocked();
-
-    // Timeout fallback — if frame never fires onload after 9s, assume blocked
-    resolved = false;
-    setTimeout(() => { if (!resolved) markBlocked(); }, 9000);
-
-    frame.src = story.url;
+    // Open article in new tab immediately
+    window.open(story.url, '_blank');
   }
 
   function addPreviewStory() {
