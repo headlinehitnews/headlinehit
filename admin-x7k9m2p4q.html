@@ -518,6 +518,11 @@
 
     .submission-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
+    .submission-card.dismissed {
+      opacity: 0.7;
+      background: #fafafa;
+    }
+
     /* ── Mobile ── */
     @media (max-width: 700px) {
       html, body { overflow: auto; }
@@ -630,11 +635,22 @@
     <div class="tab-scroll">
       <div class="tab-scroll-inner">
         <div class="card">
-          <div class="card-title">Reader Submissions</div>
+          <div class="card-title">Pending Submissions</div>
           <div class="row" style="margin-bottom:12px;">
             <button class="btn btn-red btn-sm" onclick="loadSubmissions()">↺ Refresh</button>
           </div>
           <div id="submissions-list"><p class="text-muted">Click Refresh to load submissions.</p></div>
+        </div>
+        <div class="card" style="margin-top:8px;">
+          <div class="card-title" style="cursor:pointer;user-select:none;" onclick="toggleDismissed()">
+            Dismissed Archive <span id="dismissed-toggle-icon">▶</span>
+          </div>
+          <div id="dismissed-section" style="display:none;">
+            <div class="row" style="margin-bottom:12px;">
+              <button class="btn btn-outline btn-sm" onclick="loadDismissed()">↺ Refresh Archive</button>
+            </div>
+            <div id="dismissed-list"><p class="text-muted">Click Refresh Archive to load.</p></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1200,7 +1216,7 @@
             links.splice(firstOther, 0, newLink);
           }
         }
-        if (links.length > 100) links.splice(100);
+        if (links.length > 5000) links.splice(5000);
       }
 
       data.links = links;
@@ -1255,6 +1271,31 @@
   }
 
   // ── Submissions ───────────────────────────────────────────────
+  function renderSubmissionCard(s, isDismissed) {
+    return `
+      <div class="submission-card" id="sub-card-${s.id}">
+        <div class="submission-meta">
+          <strong>${esc(s.name)}</strong>
+          ${s.email ? '&nbsp;&middot;&nbsp;' + esc(s.email) : ''}
+          &nbsp;&middot;&nbsp; ${new Date(s.submittedAt).toLocaleString()}
+          ${isDismissed && s.dismissedAt ? '&nbsp;&middot;&nbsp; <em>Dismissed ' + new Date(s.dismissedAt).toLocaleString() + '</em>' : ''}
+        </div>
+        <div class="submission-url">
+          <a href="${esc(s.url)}" target="_blank">${esc(s.url)}</a>
+        </div>
+        ${s.note ? '<div class="submission-note">&ldquo;' + esc(s.note) + '&rdquo;</div>' : ''}
+        <div class="submission-actions">
+          ${!isDismissed ? `
+            <button class="btn btn-green btn-sm" onclick='approveSubmission(${JSON.stringify(s)})'>&#10003; Add to Site</button>
+            <button class="btn btn-danger btn-sm" onclick="dismissSubmission(${s.id})">&#10005; Dismiss</button>
+          ` : `
+            <button class="btn btn-outline btn-sm" onclick='approveSubmission(${JSON.stringify(s)})'>&#10003; Add to Site</button>
+          `}
+        </div>
+      </div>
+    `;
+  }
+
   async function loadSubmissions() {
     const el = document.getElementById('submissions-list');
     el.innerHTML = '<p class="text-muted">Loading...</p>';
@@ -1269,29 +1310,38 @@
         badge.style.display = 'none';
       }
       if (submissions.length === 0) {
-        el.innerHTML = '<p class="text-muted">No submissions yet.</p>';
+        el.innerHTML = '<p class="text-muted">No pending submissions.</p>';
         return;
       }
-      el.innerHTML = submissions.map(s => `
-        <div class="submission-card" id="sub-card-${s.id}">
-          <div class="submission-meta">
-            <strong>${esc(s.name)}</strong>
-            ${s.email ? '&nbsp;&middot;&nbsp;' + esc(s.email) : ''}
-            &nbsp;&middot;&nbsp; ${new Date(s.submittedAt).toLocaleString()}
-          </div>
-          <div class="submission-url">
-            <a href="${esc(s.url)}" target="_blank">${esc(s.url)}</a>
-          </div>
-          ${s.note ? '<div class="submission-note">&ldquo;' + esc(s.note) + '&rdquo;</div>' : ''}
-          <div class="submission-actions">
-            <button class="btn btn-green btn-sm" onclick='approveSubmission(${JSON.stringify(s)})'>&#10003; Add to Site</button>
-            <button class="btn btn-danger btn-sm" onclick="dismissSubmission(${s.id})">&#10005; Dismiss</button>
-          </div>
-        </div>
-      `).join('');
+      el.innerHTML = submissions.map(s => renderSubmissionCard(s, false)).join('');
     } catch (e) {
       el.innerHTML = '<p class="text-muted">Failed to load submissions.</p>';
     }
+  }
+
+  async function loadDismissed() {
+    const el = document.getElementById('dismissed-list');
+    el.innerHTML = '<p class="text-muted">Loading...</p>';
+    try {
+      const res = await fetch(WORKER + '/submissions/dismissed', { headers: authHeader });
+      const dismissed = await res.json();
+      if (dismissed.length === 0) {
+        el.innerHTML = '<p class="text-muted">No dismissed submissions yet.</p>';
+        return;
+      }
+      el.innerHTML = dismissed.map(s => renderSubmissionCard(s, true)).join('');
+    } catch (e) {
+      el.innerHTML = '<p class="text-muted">Failed to load archive.</p>';
+    }
+  }
+
+  function toggleDismissed() {
+    const section = document.getElementById('dismissed-section');
+    const icon = document.getElementById('dismissed-toggle-icon');
+    const isHidden = section.style.display === 'none';
+    section.style.display = isHidden ? '' : 'none';
+    icon.textContent = isHidden ? '▼' : '▶';
+    if (isHidden) loadDismissed();
   }
 
   function approveSubmission(s) {
@@ -1304,15 +1354,15 @@
       await fetch(WORKER + '/submissions/' + id, { method: 'DELETE', headers: authHeader });
       const card = document.getElementById('sub-card-' + id);
       if (card) card.remove();
-      const remaining = document.querySelectorAll('[id^="sub-card-"]').length;
+      const remaining = document.querySelectorAll('#submissions-list [id^="sub-card-"]').length;
       const badge = document.getElementById('sub-badge');
       if (remaining === 0) {
         badge.style.display = 'none';
-        document.getElementById('submissions-list').innerHTML = '<p class="text-muted">No submissions yet.</p>';
+        document.getElementById('submissions-list').innerHTML = '<p class="text-muted">No pending submissions.</p>';
       } else {
         badge.textContent = remaining;
       }
-      status('Submission dismissed.', 'ok');
+      status('Submission dismissed and archived.', 'ok');
     } catch (e) {
       status('Failed to dismiss: ' + e.message, 'error');
     }
