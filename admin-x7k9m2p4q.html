@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Headline Hit — Admin</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --red: #cc0000;
+      --navy: #000080;
+      --bg: #f4f4f4;
+      --card: #ffffff;
+      --border: #dddddd;
+      --text: #111111;
+      --muted: #666666;
+      --success: #2e7d32;
+      --danger: #c62828;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #111;
+      color: #fff;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-size: 1.1em;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--red);
+    }
+
+    header span {
+      font-size: 0.8em;
+      color: #aaa;
+    }
+
+    /* ── Tab nav ── */
+    .tabs {
+      display: flex;
+      background: #222;
+      border-bottom: 2px solid var(--red);
+    }
+
+    .tab-btn {
+      padding: 10px 22px;
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s;
+      letter-spacing: 0.5px;
+    }
+
+    .tab-btn:hover { color: #fff; background: #333; }
+    .tab-btn.active { color: #fff; background: var(--red); }
+
+    /* ── Main layout ── */
+    .tab-panel { display: none; padding: 20px; max-width: 1100px; margin: 0 auto; }
+    .tab-panel.active { display: block; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .card-title {
+      font-size: 0.75em;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-block;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 3px;
+      font-size: 0.9em;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+      transition: opacity 0.15s;
+    }
+
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.45; cursor: default; }
+    .btn-red { background: var(--red); color: #fff; }
+    .btn-navy { background: var(--navy); color: #fff; }
+    .btn-gray { background: #666; color: #fff; }
+    .btn-green { background: var(--success); color: #fff; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-outline { background: none; border: 1px solid var(--border); color: var(--text); }
+    .btn-sm { padding: 5px 11px; font-size: 0.82em; }
+
+    /* ── Form elements ── */
+    input[type="text"], input[type="url"], textarea, select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-size: 0.9em;
+      font-family: Arial, sans-serif;
+      color: var(--text);
+      background: #fff;
+    }
+
+    input[type="text"]:focus, input[type="url"]:focus, textarea:focus, select:focus {
+      outline: 2px solid var(--red);
+      border-color: transparent;
+    }
+
+    label { font-size: 0.85em; color: var(--muted); display: block; margin-bottom: 4px; }
+
+    .field { margin-bottom: 12px; }
+
+    /* ── Status bar ── */
+    #status-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #222;
+      color: #fff;
+      font-size: 0.85em;
+      padding: 8px 20px;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 36px;
+    }
+
+    #status-bar.ok { background: var(--success); }
+    #status-bar.error { background: var(--danger); }
+
+    /* ── Story list (Browse tab) ── */
+    #story-list { margin-top: 14px; }
+
+    .story-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .story-item:hover { border-color: #bbb; }
+
+    .story-source {
+      font-size: 0.72em;
+      color: var(--red);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      min-width: 110px;
+      padding-top: 2px;
+    }
+
+    .story-headline {
+      flex: 1;
+      font-size: 0.95em;
+      line-height: 1.4;
+      color: var(--navy);
+    }
+
+    .story-headline a {
+      color: var(--navy);
+      text-decoration: none;
+    }
+
+    .story-headline a:hover { text-decoration: underline; }
+
+    .story-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    /* ── Filter bar ── */
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .filter-bar input {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    /* ── Current links list ── */
+    .link-row {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .link-row-index {
+      font-size: 0.75em;
+      color: var(--muted);
+      min-width: 24px;
+      text-align: right;
+    }
+
+    .link-row-thumb {
+      width: 56px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 2px;
+      background: #eee;
+      flex-shrink: 0;
+    }
+
+    .link-row-thumb-empty {
+      width: 56px;
+      height: 40px;
+      background: #eee;
+      border-radius: 2px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65em;
+      color: #aaa;
+    }
+
+    .link-row-info { flex: 1; min-width: 0; }
+
+    .link-row-headline {
+      font-size: 0.9em;
+      font-weight: bold;
+      color: var(--navy);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .link-row-meta {
+      font-size: 0.75em;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .link-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    /* ── Add/Edit modal overlay ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 300;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 20px 80px;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #fff;
+      border-radius: 6px;
+      width: 100%;
+      max-width: 600px;
+      padding: 24px;
+      position: relative;
+    }
+
+    .modal-title {
+      font-size: 1.1em;
+      font-weight: bold;
+      margin-bottom: 18px;
+      color: var(--red);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px; right: 16px;
+      background: none; border: none;
+      font-size: 1.4em;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    /* ── Image picker ── */
+    .image-options {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .image-option {
+      position: relative;
+      cursor: pointer;
+      border: 3px solid transparent;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .image-option.selected { border-color: var(--red); }
+
+    .image-option img {
+      width: 140px;
+      height: 90px;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* ── Headline options ── */
+    .headline-option {
+      border: 2px solid var(--border);
+      border-radius: 3px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      font-size: 0.9em;
+      line-height: 1.4;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .headline-option:hover { border-color: #aaa; background: #fafafa; }
+    .headline-option.selected { border-color: var(--red); background: #fff5f5; }
+
+    /* ── Section labels ── */
+    .section-label {
+      font-size: 0.72em;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin: 16px 0 8px;
+    }
+
+    /* ── Category grid ── */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .cat-btn {
+      padding: 8px 10px;
+      border: 2px solid var(--border);
+      border-radius: 3px;
+      background: none;
+      cursor: pointer;
+      font-size: 0.85em;
+      text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .cat-btn:hover { border-color: #aaa; background: #fafafa; }
+    .cat-btn.selected { border-color: var(--red); background: #fff5f5; }
+
+    /* ── Position selector ── */
+    .position-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .pos-btn {
+      padding: 10px 8px;
+      border: 2px solid var(--border);
+      border-radius: 3px;
+      background: none;
+      cursor: pointer;
+      font-size: 0.82em;
+      text-align: center;
+      line-height: 1.3;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .pos-btn:hover { border-color: #aaa; background: #fafafa; }
+    .pos-btn.selected { border-color: var(--red); background: #fff5f5; }
+    .pos-btn strong { display: block; font-size: 1.1em; margin-bottom: 2px; }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Misc ── */
+    .row { display: flex; gap: 10px; align-items: center; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+    .text-muted { color: var(--muted); font-size: 0.85em; }
+    .mt8 { margin-top: 8px; }
+    .mt14 { margin-top: 14px; }
+
+    @media (max-width: 600px) {
+      .story-item { flex-wrap: wrap; }
+      .story-source { min-width: auto; }
+      .position-grid { grid-template-columns: 1fr; }
+      .category-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Headline Hit <span style="color:#666;font-size:0.8em;letter-spacing:0">— Admin</span></h1>
+  <span id="header-count">Loading...</span>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('browse')">📰 Browse</button>
+  <button class="tab-btn" onclick="switchTab('add')">➕ Add URL</button>
+  <button class="tab-btn" onclick="switchTab('manage')">✏️ Manage</button>
+</div>
+
+<!-- BROWSE TAB -->
+<div class="tab-panel active" id="tab-browse">
+  <div class="card">
+    <div class="filter-bar">
+      <input type="text" id="story-search" placeholder="Filter headlines..." oninput="filterStories()">
+      <select id="source-filter" onchange="filterStories()" style="width:auto;min-width:150px;">
+        <option value="">All sources</option>
+      </select>
+      <button class="btn btn-red" onclick="loadStories()" id="fetch-btn">Fetch Stories</button>
+    </div>
+    <div class="text-muted" id="story-count"></div>
+  </div>
+  <div id="story-list"><p class="text-muted">Click "Fetch Stories" to load headlines from all RSS feeds.</p></div>
+</div>
+
+<!-- ADD URL TAB -->
+<div class="tab-panel" id="tab-add">
+  <div class="card">
+    <div class="card-title">Add a link manually</div>
+    <div class="field">
+      <label>Article URL</label>
+      <div class="row">
+        <input type="url" id="manual-url" placeholder="https://..." style="flex:1">
+        <button class="btn btn-red" onclick="startAddFromUrl()">Go</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGE TAB -->
+<div class="tab-panel" id="tab-manage">
+  <div class="card">
+    <div class="card-title">Current links on site</div>
+    <div class="row" style="margin-bottom:12px;">
+      <button class="btn btn-red btn-sm" onclick="loadCurrentLinks()">↺ Refresh</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmClearAll()">🗑 Clear All</button>
+    </div>
+    <div id="current-links-list"><p class="text-muted">Click Refresh to load current links.</p></div>
+  </div>
+</div>
+
+<!-- Status bar -->
+<div id="status-bar">Ready</div>
+
+<!-- ADD / EDIT MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-title" id="modal-title">Add Story</div>
+
+    <!-- Step 1: Images -->
+    <div id="step-images">
+      <div class="section-label">Step 1 — Choose Image</div>
+      <div id="image-loading" class="text-muted">Fetching preview images...</div>
+      <div class="image-options" id="image-options"></div>
+      <div class="field mt8">
+        <label>Or paste a direct image URL</label>
+        <input type="url" id="custom-image-url" placeholder="https://..." oninput="onCustomImageUrl()">
+      </div>
+      <div class="row mt8">
+        <button class="btn btn-outline btn-sm" onclick="clearImage()">No image</button>
+      </div>
+      <hr class="divider">
+      <button class="btn btn-red" onclick="goToHeadlines()" id="btn-to-headlines">Next: Headlines →</button>
+    </div>
+
+    <!-- Step 2: Headlines -->
+    <div id="step-headlines" style="display:none;">
+      <div class="section-label">Step 2 — Choose Headline</div>
+      <div id="headline-loading" class="text-muted">Generating headline options...</div>
+      <div id="headline-options"></div>
+      <div class="field mt8">
+        <label>Or write your own</label>
+        <input type="text" id="custom-headline" placeholder="Your headline..." oninput="onCustomHeadline()">
+      </div>
+      <hr class="divider">
+      <div class="row">
+        <button class="btn btn-outline btn-sm" onclick="goToImages()">← Back</button>
+        <button class="btn btn-red" onclick="goToPosition()" id="btn-to-position">Next: Placement →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Position + Category -->
+    <div id="step-position" style="display:none;">
+      <div class="section-label">Step 3 — Placement</div>
+      <div class="position-grid" id="position-grid">
+        <button class="pos-btn" onclick="selectPosition('1')"><strong>1</strong>Top Headline</button>
+        <button class="pos-btn" onclick="selectPosition('2')"><strong>2</strong>Sub-Headlines</button>
+        <button class="pos-btn" onclick="selectPosition('3')"><strong>3</strong>Link Only</button>
+      </div>
+
+      <div class="section-label">Category</div>
+      <div class="category-grid" id="category-grid">
+        <button class="cat-btn" onclick="selectCategory(0)">🏦 US Politics</button>
+        <button class="cat-btn" onclick="selectCategory(1)">📺 News Media</button>
+        <button class="cat-btn" onclick="selectCategory(2)">🎭 Society & Culture</button>
+        <button class="cat-btn" onclick="selectCategory(3)">🏆 Sports News</button>
+        <button class="cat-btn" onclick="selectCategory(4)">💻 Tech News</button>
+        <button class="cat-btn" onclick="selectCategory(5)">🎬 Entertainment</button>
+        <button class="cat-btn" onclick="selectCategory(6)">🌍 World News</button>
+        <button class="cat-btn" onclick="selectCategory(7)">📈 Economy & Business</button>
+        <button class="cat-btn" onclick="selectCategory(8)">⚖️ Crime & Law</button>
+        <button class="cat-btn" onclick="selectCategory(9)">🧬 Health & Science</button>
+      </div>
+
+      <hr class="divider">
+      <div class="row">
+        <button class="btn btn-outline btn-sm" onclick="goToHeadlines()">← Back</button>
+        <button class="btn btn-green" onclick="submitLink()" id="btn-submit">✓ Publish</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const WORKER = 'https://news-worker.headlinehitnews.workers.dev';
+  const SECRET = 'hh_secret_2024_xk92'; // same value as BOT_SECRET in Railway + Cloudflare Worker
+
+  const CATEGORIES = [
+    { label: 'US Politics',       emoji: '🏦' },
+    { label: 'News Media',        emoji: '📺' },
+    { label: 'Society & Culture', emoji: '🎭' },
+    { label: 'Sports News',       emoji: '🏆' },
+    { label: 'Tech News',         emoji: '💻' },
+    { label: 'Entertainment',     emoji: '🎬' },
+    { label: 'World News',        emoji: '🌍' },
+    { label: 'Economy & Business',emoji: '📈' },
+    { label: 'Crime & Law',       emoji: '⚖️' },
+    { label: 'Health & Science',  emoji: '🧬' },
+  ];
+
+  const authHeader = { 'Authorization': 'Bearer ' + SECRET, 'Content-Type': 'application/json' };
+
+  // State
+  let allStories = [];
+  let currentLinks = [];
+  let modalState = {};
+  let editIndex = null; // null = add mode, number = edit mode
+
+  // ── Status bar ──────────────────────────────────────────────────
+  let statusTimer;
+  function status(msg, type = '', persist = false) {
+    const bar = document.getElementById('status-bar');
+    bar.textContent = msg;
+    bar.className = type;
+    clearTimeout(statusTimer);
+    if (!persist) statusTimer = setTimeout(() => { bar.textContent = 'Ready'; bar.className = ''; }, 4000);
+  }
+
+  // ── Tabs ────────────────────────────────────────────────────────
+  function switchTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+    if (name === 'manage') loadCurrentLinks();
+  }
+
+  // ── Load current links ──────────────────────────────────────────
+  async function loadCurrentLinks() {
+    try {
+      const res = await fetch(WORKER + '/links');
+      const data = await res.json();
+      currentLinks = data.links || [];
+      document.getElementById('header-count').textContent = currentLinks.length + ' links live';
+      renderCurrentLinks();
+    } catch (e) {
+      status('Failed to load links: ' + e.message, 'error');
+    }
+  }
+
+  function renderCurrentLinks() {
+    const el = document.getElementById('current-links-list');
+    if (currentLinks.length === 0) {
+      el.innerHTML = '<p class="text-muted">No links on site yet.</p>';
+      return;
+    }
+    el.innerHTML = currentLinks.map((link, i) => `
+      <div class="link-row">
+        <div class="link-row-index">${i + 1}</div>
+        ${link.image
+          ? `<img class="link-row-thumb" src="${esc(link.image)}" onerror="this.style.display='none'">`
+          : `<div class="link-row-thumb-empty">no img</div>`}
+        <div class="link-row-info">
+          <div class="link-row-headline" title="${esc(link.headline)}">${esc(link.headline)}</div>
+          <div class="link-row-meta">${link.emoji || ''} ${esc(link.category || '')} &nbsp;·&nbsp; <a href="${esc(link.url)}" target="_blank">${getDomain(link.url)}</a></div>
+        </div>
+        <div class="link-row-actions">
+          <button class="btn btn-outline btn-sm" onclick="startEdit(${i})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteLink(${i})">✕</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ── Browse / RSS ─────────────────────────────────────────────────
+  async function loadStories() {
+    const btn = document.getElementById('fetch-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Fetching...';
+    status('Fetching stories from all RSS feeds...', '', true);
+    document.getElementById('story-list').innerHTML = '<p class="text-muted">Loading — this takes 10–20 seconds...</p>';
+
+    try {
+      // Get existing URLs to dedupe
+      const linksRes = await fetch(WORKER + '/links');
+      const linksData = await linksRes.json();
+      currentLinks = linksData.links || [];
+      const existingUrls = currentLinks.map(l => l.url);
+
+      const res = await fetch(WORKER + '/admin/fetch-rss', {
+        method: 'POST',
+        headers: authHeader,
+        body: JSON.stringify({ existingUrls })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      allStories = data.stories;
+      buildSourceFilter();
+      filterStories();
+      status('Loaded ' + allStories.length + ' stories', 'ok');
+    } catch (e) {
+      status('Failed: ' + e.message, 'error');
+      document.getElementById('story-list').innerHTML = '<p class="text-muted">Error loading stories. Check the Worker is deployed and try again.</p>';
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Fetch Stories';
+  }
+
+  function buildSourceFilter() {
+    const sources = [...new Set(allStories.map(s => s.source))].sort();
+    const sel = document.getElementById('source-filter');
+    sel.innerHTML = '<option value="">All sources</option>' +
+      sources.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  }
+
+  function filterStories() {
+    const q = document.getElementById('story-search').value.toLowerCase();
+    const src = document.getElementById('source-filter').value;
+    const filtered = allStories.filter(s =>
+      (!q || s.headline.toLowerCase().includes(q) || s.source.toLowerCase().includes(q)) &&
+      (!src || s.source === src)
+    );
+    document.getElementById('story-count').textContent = filtered.length + ' of ' + allStories.length + ' stories';
+    const el = document.getElementById('story-list');
+    if (filtered.length === 0) {
+      el.innerHTML = '<p class="text-muted">No matching stories.</p>';
+      return;
+    }
+    el.innerHTML = filtered.map((s, i) => `
+      <div class="story-item">
+        <div class="story-source">${esc(s.source)}</div>
+        <div class="story-headline">
+          <a href="${esc(s.url)}" target="_blank">${esc(s.headline)}</a>
+        </div>
+        <div class="story-actions">
+          <button class="btn btn-red btn-sm" onclick='startAddFromStory(${JSON.stringify(s)})'>Add</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ── Add from URL tab ────────────────────────────────────────────
+  function startAddFromUrl() {
+    const url = document.getElementById('manual-url').value.trim();
+    if (!url.startsWith('http')) { status('Please enter a valid URL', 'error'); return; }
+    startAddFromStory({ url, headline: '', source: '' });
+    document.getElementById('manual-url').value = '';
+  }
+
+  // ── Open modal for add ──────────────────────────────────────────
+  function startAddFromStory(story) {
+    editIndex = null;
+    modalState = {
+      url: story.url,
+      originalHeadline: story.headline || '',
+      image: null,
+      headline: '',
+      position: null,
+      categoryIndex: null,
+    };
+    document.getElementById('modal-title').textContent = 'Add Story';
+    openModal();
+    showStep('images');
+    fetchImages(story.url);
+    fetchHeadlines(story.url, story.headline || '');
+  }
+
+  // ── Open modal for edit ─────────────────────────────────────────
+  function startEdit(index) {
+    const link = currentLinks[index];
+    editIndex = index;
+    modalState = {
+      url: link.url,
+      originalHeadline: link.headline,
+      image: link.image || null,
+      headline: link.headline,
+      position: null, // not changed during edit
+      categoryIndex: CATEGORIES.findIndex(c => c.label === link.category),
+    };
+    document.getElementById('modal-title').textContent = 'Edit Story';
+    openModal();
+    showStep('images');
+
+    // Pre-populate image
+    const opts = document.getElementById('image-options');
+    opts.innerHTML = '';
+    document.getElementById('image-loading').textContent = '';
+    if (link.image) {
+      addImageOption(link.image, true);
+    }
+    document.getElementById('custom-image-url').value = '';
+
+    // Pre-populate headline
+    document.getElementById('custom-headline').value = link.headline;
+    document.getElementById('headline-loading').textContent = '';
+    document.getElementById('headline-options').innerHTML = '';
+    fetchHeadlines(link.url, link.headline);
+
+    // Pre-select category
+    if (modalState.categoryIndex >= 0) {
+      document.querySelectorAll('.cat-btn').forEach((b, i) => {
+        b.classList.toggle('selected', i === modalState.categoryIndex);
+      });
+    }
+  }
+
+  // ── Modal helpers ───────────────────────────────────────────────
+  function openModal() {
+    document.getElementById('modal-overlay').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    editIndex = null;
+    modalState = {};
+    // Reset modal UI
+    document.getElementById('image-options').innerHTML = '';
+    document.getElementById('headline-options').innerHTML = '';
+    document.getElementById('custom-image-url').value = '';
+    document.getElementById('custom-headline').value = '';
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('image-loading').textContent = '';
+    document.getElementById('headline-loading').textContent = '';
+  }
+
+  function showStep(name) {
+    ['images', 'headlines', 'position'].forEach(s => {
+      document.getElementById('step-' + s).style.display = s === name ? '' : 'none';
+    });
+  }
+
+  // ── Fetch images ────────────────────────────────────────────────
+  async function fetchImages(url) {
+    document.getElementById('image-loading').textContent = 'Fetching preview images...';
+    document.getElementById('image-options').innerHTML = '';
+    try {
+      const res = await fetch(WORKER + '/admin/fetch-images', {
+        method: 'POST', headers: authHeader, body: JSON.stringify({ url })
+      });
+      const data = await res.json();
+      document.getElementById('image-loading').textContent = '';
+      if (data.images && data.images.length > 0) {
+        data.images.forEach((img, i) => addImageOption(img, i === 0));
+        if (!modalState.image) modalState.image = data.images[0];
+      } else {
+        document.getElementById('image-loading').textContent = 'No preview images found. Paste a URL or continue without.';
+      }
+    } catch (e) {
+      document.getElementById('image-loading').textContent = 'Could not fetch images.';
+    }
+  }
+
+  function addImageOption(src, selected = false) {
+    const opts = document.getElementById('image-options');
+    const div = document.createElement('div');
+    div.className = 'image-option' + (selected ? ' selected' : '');
+    div.innerHTML = `<img src="${esc(src)}" onerror="this.parentElement.remove()">`;
+    div.onclick = () => {
+      document.querySelectorAll('.image-option').forEach(o => o.classList.remove('selected'));
+      div.classList.add('selected');
+      modalState.image = src;
+      document.getElementById('custom-image-url').value = '';
+    };
+    opts.appendChild(div);
+    if (selected) modalState.image = src;
+  }
+
+  function onCustomImageUrl() {
+    const val = document.getElementById('custom-image-url').value.trim();
+    if (val.startsWith('http')) {
+      document.querySelectorAll('.image-option').forEach(o => o.classList.remove('selected'));
+      modalState.image = val;
+    }
+  }
+
+  function clearImage() {
+    document.querySelectorAll('.image-option').forEach(o => o.classList.remove('selected'));
+    document.getElementById('custom-image-url').value = '';
+    modalState.image = null;
+  }
+
+  // ── Fetch headlines ─────────────────────────────────────────────
+  async function fetchHeadlines(url, fallbackHeadline) {
+    document.getElementById('headline-loading').textContent = 'Generating AI headline options...';
+    document.getElementById('headline-options').innerHTML = '';
+    try {
+      const res = await fetch(WORKER + '/admin/generate-headlines', {
+        method: 'POST', headers: authHeader, body: JSON.stringify({ url, fallbackHeadline })
+      });
+      const data = await res.json();
+      document.getElementById('headline-loading').textContent = '';
+      if (data.headlines && data.headlines.length > 0) {
+        data.headlines.forEach((h, i) => {
+          const div = document.createElement('div');
+          div.className = 'headline-option' + (i === 0 ? ' selected' : '');
+          div.textContent = h;
+          div.onclick = () => {
+            document.querySelectorAll('.headline-option').forEach(o => o.classList.remove('selected'));
+            div.classList.add('selected');
+            modalState.headline = h;
+            document.getElementById('custom-headline').value = '';
+          };
+          document.getElementById('headline-options').appendChild(div);
+          if (i === 0 && !modalState.headline) modalState.headline = h;
+        });
+      } else {
+        document.getElementById('headline-loading').textContent = 'Could not generate headlines. Write one below.';
+      }
+    } catch (e) {
+      document.getElementById('headline-loading').textContent = 'Headline generation failed. Write one below.';
+    }
+  }
+
+  function onCustomHeadline() {
+    const val = document.getElementById('custom-headline').value.trim();
+    if (val.length > 3) {
+      document.querySelectorAll('.headline-option').forEach(o => o.classList.remove('selected'));
+      modalState.headline = val;
+    }
+  }
+
+  // ── Step navigation ─────────────────────────────────────────────
+  function goToImages() { showStep('images'); }
+
+  function goToHeadlines() { showStep('headlines'); }
+
+  function goToPosition() {
+    // Resolve headline from custom field if nothing selected
+    const custom = document.getElementById('custom-headline').value.trim();
+    if (custom.length > 3) modalState.headline = custom;
+    if (!modalState.headline) { status('Please choose or write a headline', 'error'); return; }
+    if (editIndex !== null) {
+      // Edit mode: skip position, go straight to position step but hide position picker
+      document.getElementById('position-grid').style.display = 'none';
+    } else {
+      document.getElementById('position-grid').style.display = '';
+    }
+    showStep('position');
+  }
+
+  function selectPosition(p) {
+    modalState.position = p;
+    document.querySelectorAll('.pos-btn').forEach((b, i) => {
+      b.classList.toggle('selected', String(i + 1) === p);
+    });
+  }
+
+  function selectCategory(i) {
+    modalState.categoryIndex = i;
+    document.querySelectorAll('.cat-btn').forEach((b, j) => b.classList.toggle('selected', i === j));
+  }
+
+  // ── Submit (add or edit) ────────────────────────────────────────
+  async function submitLink() {
+    if (editIndex === null && !modalState.position) { status('Please choose a placement', 'error'); return; }
+    if (modalState.categoryIndex === null || modalState.categoryIndex < 0) { status('Please choose a category', 'error'); return; }
+    if (!modalState.headline) { status('Please choose or write a headline', 'error'); return; }
+
+    const btn = document.getElementById('btn-submit');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Saving...';
+    status('Saving...', '', true);
+
+    try {
+      const linksRes = await fetch(WORKER + '/links');
+      const data = await linksRes.json();
+      const links = data.links || [];
+
+      const cat = CATEGORIES[modalState.categoryIndex];
+      const newLink = {
+        headline: modalState.headline,
+        url: modalState.url,
+        category: cat.label,
+        emoji: cat.emoji,
+      };
+      if (modalState.image) newLink.image = modalState.image;
+
+      if (editIndex !== null) {
+        // Edit: replace in place, preserve image if not changed
+        const existing = links[editIndex];
+        if (!newLink.image && existing.image) newLink.image = existing.image;
+        links[editIndex] = newLink;
+      } else {
+        // Add: insert by position
+        if (modalState.position === '1') {
+          links.unshift(newLink);
+        } else if (modalState.position === '2') {
+          links.splice(1, 0, newLink);
+        } else {
+          const insertAt = Math.min(11, links.length);
+          links.splice(insertAt, 0, newLink);
+        }
+        if (links.length > 50) links.splice(50);
+      }
+
+      data.links = links;
+      data.lastUpdated = new Date().toISOString();
+
+      await fetch(WORKER + '/links', {
+        method: 'POST', headers: authHeader, body: JSON.stringify(data)
+      });
+
+      currentLinks = links;
+      document.getElementById('header-count').textContent = currentLinks.length + ' links live';
+      closeModal();
+      status(editIndex !== null ? 'Link updated!' : 'Link published!', 'ok');
+      renderCurrentLinks();
+    } catch (e) {
+      status('Save failed: ' + e.message, 'error');
+    }
+
+    btn.disabled = false;
+    btn.textContent = '✓ Publish';
+  }
+
+  // ── Delete ──────────────────────────────────────────────────────
+  async function deleteLink(index) {
+    const link = currentLinks[index];
+    if (!confirm('Delete this link?\n\n"' + link.headline + '"')) return;
+    status('Deleting...', '', true);
+    try {
+      const linksRes = await fetch(WORKER + '/links');
+      const data = await linksRes.json();
+      data.links.splice(index, 1);
+      data.lastUpdated = new Date().toISOString();
+      await fetch(WORKER + '/links', { method: 'POST', headers: authHeader, body: JSON.stringify(data) });
+      currentLinks = data.links;
+      document.getElementById('header-count').textContent = currentLinks.length + ' links live';
+      renderCurrentLinks();
+      status('Deleted.', 'ok');
+    } catch (e) {
+      status('Delete failed: ' + e.message, 'error');
+    }
+  }
+
+  // ── Clear all ───────────────────────────────────────────────────
+  async function confirmClearAll() {
+    if (!confirm('Clear ALL links from the site? This cannot be undone.')) return;
+    status('Clearing...', '', true);
+    try {
+      const data = { links: [], lastUpdated: new Date().toISOString() };
+      await fetch(WORKER + '/links', { method: 'POST', headers: authHeader, body: JSON.stringify(data) });
+      currentLinks = [];
+      document.getElementById('header-count').textContent = '0 links live';
+      renderCurrentLinks();
+      status('All links cleared.', 'ok');
+    } catch (e) {
+      status('Clear failed: ' + e.message, 'error');
+    }
+  }
+
+  // ── Utilities ───────────────────────────────────────────────────
+  function getDomain(url) {
+    try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return ''; }
+  }
+
+  function esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────
+  loadCurrentLinks();
+</script>
+
+</body>
+</html>
