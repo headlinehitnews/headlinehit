@@ -263,6 +263,12 @@
       padding-left: 1.2em;
     }
 
+    .inline-source {
+      font-size: 0.82em;
+      color: #888888;
+      font-weight: normal;
+    }
+
     /* ── Bottom overflow grid ── */
     .bottom-divider {
       border-top: 2px solid #cccccc;
@@ -501,17 +507,11 @@
         otherLinks.slice(0, OTHER_COL_MAX).forEach(item => {
           const div = document.createElement('div'); div.className = 'other-link-item';
           const prefix = item.emoji || '&#9654;';
+          const domain = getDomain(item.url);
           const a = document.createElement('a');
           a.href = item.url; a.target = '_blank';
-          a.innerHTML = prefix + ' ' + item.headline;
+          a.innerHTML = prefix + ' ' + item.headline + (domain ? ' <span class="inline-source">- ' + domain + '</span>' : '');
           div.appendChild(a);
-          const domain = getDomain(item.url);
-          if (domain) {
-            const src = document.createElement('div');
-            src.className = 'other-link-source';
-            src.textContent = domain;
-            div.appendChild(src);
-          }
           otherEl.appendChild(div);
         });
 
@@ -522,17 +522,11 @@
           overflowLinks.forEach(item => {
             const div = document.createElement('div'); div.className = 'link-item';
             const prefix = item.emoji || '&#9654;';
+            const domain = getDomain(item.url);
             const a = document.createElement('a');
             a.href = item.url; a.target = '_blank';
-            a.innerHTML = prefix + ' ' + item.headline;
+            a.innerHTML = prefix + ' ' + item.headline + (domain ? ' <span class="inline-source">- ' + domain + '</span>' : '');
             div.appendChild(a);
-            const domain = getDomain(item.url);
-            if (domain) {
-              const src = document.createElement('div');
-              src.className = 'link-source';
-              src.textContent = domain;
-              div.appendChild(src);
-            }
             grid.appendChild(div);
           });
         }
