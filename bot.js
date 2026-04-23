@@ -78,6 +78,21 @@ async function clearPending(userId) {
   await axios.delete(WORKER_BASE + '/pending/' + userId, { headers: AUTH_HEADER });
 }
 
+// ── Image URL validator ──────────────────────────────────────────
+async function validateImageUrl(url) {
+  try {
+    const response = await axios.head(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)' },
+      timeout: 8000,
+      maxRedirects: 5
+    });
+    const contentType = response.headers['content-type'] || '';
+    return response.status === 200 && contentType.startsWith('image/');
+  } catch (err) {
+    return false;
+  }
+}
+
 async function fetchImages(url) {
   const images = [];
   try {
@@ -328,7 +343,7 @@ async function handleMessage(msg) {
     , { parse_mode: 'Markdown' });
     return;
   }
-  
+
   if (text.toLowerCase() === 'edit' || text.toLowerCase() === '/edit') {
     const data = await getLinks();
     if (!data.links || data.links.length === 0) {
@@ -590,6 +605,12 @@ async function handleMessage(msg) {
       return;
     }
     if (text.startsWith('http')) {
+      bot.sendMessage(chatId, 'Checking image URL...');
+      const valid = await validateImageUrl(text);
+      if (!valid) {
+        bot.sendMessage(chatId, '⚠️ That image URL appears to be broken or invalid. Paste a different URL, send an image file, or reply "skip".');
+        return;
+      }
       await savePending(userId, { ...pending, newImage: text, step: 'awaiting_edit_category' });
       await showCategoryPrompt(chatId, userId, pending, 'Image URL saved.');
       return;
@@ -656,6 +677,12 @@ async function handleMessage(msg) {
     }
 
     if (choice.startsWith('http')) {
+      bot.sendMessage(chatId, 'Checking image URL...');
+      const valid = await validateImageUrl(choice);
+      if (!valid) {
+        bot.sendMessage(chatId, '⚠️ That image URL appears to be broken or invalid. Try a different URL, pick a number, "upload", or "skip".');
+        return;
+      }
       const updatedPending2 = { ...pending, image: choice };
       await triggerHeadlineGeneration(chatId, userId, updatedPending2);
       return;
@@ -680,6 +707,12 @@ async function handleMessage(msg) {
       return;
     }
     if (text.startsWith('http')) {
+      bot.sendMessage(chatId, 'Checking image URL...');
+      const valid = await validateImageUrl(text);
+      if (!valid) {
+        bot.sendMessage(chatId, '⚠️ That image URL appears to be broken or invalid. Send an image file, paste a different URL, or reply "skip".');
+        return;
+      }
       const updatedPending4 = { ...pending, image: text };
       await triggerHeadlineGeneration(chatId, userId, updatedPending4);
       return;
