@@ -486,6 +486,38 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── Submission cards ── */
+    .submission-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+
+    .submission-meta {
+      font-size: 0.75em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .submission-url {
+      font-size: 0.88em;
+      color: var(--navy);
+      word-break: break-all;
+      margin-bottom: 6px;
+    }
+
+    .submission-note {
+      font-size: 0.85em;
+      color: var(--text);
+      font-style: italic;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .submission-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
     /* ── Mobile ── */
     @media (max-width: 700px) {
       html, body { overflow: auto; }
@@ -509,6 +541,7 @@
   <button class="tab-btn active" onclick="switchTab('browse', this)">📰 Browse</button>
   <button class="tab-btn" onclick="switchTab('add', this)">➕ Add URL</button>
   <button class="tab-btn" onclick="switchTab('manage', this)">✏️ Manage</button>
+  <button class="tab-btn" onclick="switchTab('submissions', this)">📬 Submissions <span id="sub-badge" style="display:none;background:#cc0000;color:#fff;border-radius:10px;padding:1px 6px;font-size:0.8em;margin-left:4px;"></span></button>
 </div>
 
 <div class="content-area">
@@ -587,6 +620,21 @@
           <div id="current-links-list">
             <p class="text-muted">Click Refresh to load current links.</p>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBMISSIONS TAB -->
+  <div class="tab-panel" id="tab-submissions">
+    <div class="tab-scroll">
+      <div class="tab-scroll-inner">
+        <div class="card">
+          <div class="card-title">Reader Submissions</div>
+          <div class="row" style="margin-bottom:12px;">
+            <button class="btn btn-red btn-sm" onclick="loadSubmissions()">↺ Refresh</button>
+          </div>
+          <div id="submissions-list"><p class="text-muted">Click Refresh to load submissions.</p></div>
         </div>
       </div>
     </div>
@@ -674,7 +722,7 @@
 
 <script>
   const WORKER = 'https://news-worker.headlinehitnews.workers.dev';
-  const SECRET = 'hh_secret_2024_xk92'; // same value as BOT_SECRET in Railway + Cloudflare Worker
+  const SECRET = 'YOUR_BOT_SECRET_HERE'; // same value as BOT_SECRET in Railway + Cloudflare Worker
 
   const CATEGORIES = [
     { label: 'US Politics',        emoji: '🏦' },
@@ -1206,8 +1254,83 @@
       .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  // ── Submissions ───────────────────────────────────────────────
+  async function loadSubmissions() {
+    const el = document.getElementById('submissions-list');
+    el.innerHTML = '<p class="text-muted">Loading...</p>';
+    try {
+      const res = await fetch(WORKER + '/submissions', { headers: authHeader });
+      const submissions = await res.json();
+      const badge = document.getElementById('sub-badge');
+      if (submissions.length > 0) {
+        badge.textContent = submissions.length;
+        badge.style.display = '';
+      } else {
+        badge.style.display = 'none';
+      }
+      if (submissions.length === 0) {
+        el.innerHTML = '<p class="text-muted">No submissions yet.</p>';
+        return;
+      }
+      el.innerHTML = submissions.map(s => `
+        <div class="submission-card" id="sub-card-${s.id}">
+          <div class="submission-meta">
+            <strong>${esc(s.name)}</strong>
+            ${s.email ? '&nbsp;&middot;&nbsp;' + esc(s.email) : ''}
+            &nbsp;&middot;&nbsp; ${new Date(s.submittedAt).toLocaleString()}
+          </div>
+          <div class="submission-url">
+            <a href="${esc(s.url)}" target="_blank">${esc(s.url)}</a>
+          </div>
+          ${s.note ? '<div class="submission-note">&ldquo;' + esc(s.note) + '&rdquo;</div>' : ''}
+          <div class="submission-actions">
+            <button class="btn btn-green btn-sm" onclick='approveSubmission(${JSON.stringify(s)})'>&#10003; Add to Site</button>
+            <button class="btn btn-danger btn-sm" onclick="dismissSubmission(${s.id})">&#10005; Dismiss</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (e) {
+      el.innerHTML = '<p class="text-muted">Failed to load submissions.</p>';
+    }
+  }
+
+  function approveSubmission(s) {
+    window._pendingSubmissionId = s.id;
+    startAddFromStory({ url: s.url, headline: s.note || '', source: '' });
+  }
+
+  async function dismissSubmission(id) {
+    try {
+      await fetch(WORKER + '/submissions/' + id, { method: 'DELETE', headers: authHeader });
+      const card = document.getElementById('sub-card-' + id);
+      if (card) card.remove();
+      const remaining = document.querySelectorAll('[id^="sub-card-"]').length;
+      const badge = document.getElementById('sub-badge');
+      if (remaining === 0) {
+        badge.style.display = 'none';
+        document.getElementById('submissions-list').innerHTML = '<p class="text-muted">No submissions yet.</p>';
+      } else {
+        badge.textContent = remaining;
+      }
+      status('Submission dismissed.', 'ok');
+    } catch (e) {
+      status('Failed to dismiss: ' + e.message, 'error');
+    }
+  }
+
+  // Auto-dismiss submission after publishing if one was approved
+  const origSubmitLink = submitLink;
+  async function submitLink() {
+    await origSubmitLink();
+    if (window._pendingSubmissionId) {
+      await dismissSubmission(window._pendingSubmissionId);
+      window._pendingSubmissionId = null;
+    }
+  }
+
   // ── Init ──────────────────────────────────────────────────────────
   loadCurrentLinks();
+  loadSubmissions();
 </script>
 
 </body>

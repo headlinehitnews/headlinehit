@@ -42,11 +42,137 @@
       margin-top: 6px;
     }
 
-    /* ── Decorative bar (no ticker content) ── */
+    /* ── Info bar ── */
     .bar {
       background: #111111;
-      height: 5px;
+      padding: 5px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78em;
+      font-family: Arial, sans-serif;
     }
+
+    .bar-date {
+      color: #aaaaaa;
+      letter-spacing: 0.3px;
+    }
+
+    .bar-submit {
+      color: #cc0000;
+      cursor: pointer;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-size: 0.9em;
+      background: none;
+      border: none;
+      font-family: Arial, sans-serif;
+      padding: 0;
+    }
+
+    .bar-submit:hover { text-decoration: underline; color: #ff2222; }
+
+    /* ── Submission modal ── */
+    .submit-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .submit-overlay.open { display: flex; }
+
+    .submit-modal {
+      background: #fff;
+      border-radius: 6px;
+      width: 100%;
+      max-width: 500px;
+      padding: 28px;
+      position: relative;
+    }
+
+    .submit-modal h2 {
+      font-family: Georgia, serif;
+      font-size: 1.3em;
+      color: #cc0000;
+      margin-bottom: 6px;
+    }
+
+    .submit-modal p.sub-desc {
+      font-size: 0.85em;
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .submit-modal .close-btn {
+      position: absolute;
+      top: 14px; right: 16px;
+      background: none; border: none;
+      font-size: 1.4em; cursor: pointer;
+      color: #888;
+    }
+
+    .submit-field { margin-bottom: 14px; }
+
+    .submit-field label {
+      display: block;
+      font-size: 0.82em;
+      color: #555;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+
+    .submit-field input,
+    .submit-field textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      font-size: 0.9em;
+      font-family: Arial, sans-serif;
+      color: #111;
+    }
+
+    .submit-field input:focus,
+    .submit-field textarea:focus {
+      outline: 2px solid #cc0000;
+      border-color: transparent;
+    }
+
+    .submit-field textarea { resize: vertical; min-height: 80px; }
+
+    .submit-btn {
+      width: 100%;
+      padding: 10px;
+      background: #cc0000;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+      margin-top: 4px;
+    }
+
+    .submit-btn:hover { background: #aa0000; }
+    .submit-btn:disabled { opacity: 0.5; cursor: default; }
+
+    .submit-success {
+      text-align: center;
+      padding: 20px 0;
+      display: none;
+    }
+
+    .submit-success .check { font-size: 2.5em; margin-bottom: 10px; }
+    .submit-success h3 { font-size: 1.1em; color: #111; margin-bottom: 8px; }
+    .submit-success p { font-size: 0.85em; color: #666; }
 
     /* ── Container ── */
     .container {
@@ -363,7 +489,46 @@
     <p class="tagline">The news, unspun.</p>
   </header>
 
-  <div class="bar"></div>
+  <div class="bar">
+    <span class="bar-date" id="bar-date"></span>
+    <button class="bar-submit" onclick="openSubmit()">Submit a Story</button>
+  </div>
+
+  <!-- Submission modal -->
+  <div class="submit-overlay" id="submit-overlay">
+    <div class="submit-modal">
+      <button class="close-btn" onclick="closeSubmit()">×</button>
+      <h2>Submit a Story</h2>
+      <p class="sub-desc">Found something worth sharing? Send it our way and we may feature it on Headline Hit.</p>
+
+      <div id="submit-form-wrap">
+        <div class="submit-field">
+          <label>Your Name</label>
+          <input type="text" id="sub-name" placeholder="First name or handle">
+        </div>
+        <div class="submit-field">
+          <label>Email <span style="color:#999;font-weight:normal">(optional)</span></label>
+          <input type="email" id="sub-email" placeholder="your@email.com">
+        </div>
+        <div class="submit-field">
+          <label>Story URL *</label>
+          <input type="url" id="sub-url" placeholder="https://...">
+        </div>
+        <div class="submit-field">
+          <label>Why is this worth reading? <span style="color:#999;font-weight:normal">(optional)</span></label>
+          <textarea id="sub-note" placeholder="Brief note..."></textarea>
+        </div>
+        <button class="submit-btn" id="sub-btn" onclick="submitStory()">Submit</button>
+        <p id="sub-error" style="color:#cc0000;font-size:0.82em;margin-top:8px;display:none;"></p>
+      </div>
+
+      <div class="submit-success" id="submit-success">
+        <div class="check">✅</div>
+        <h3>Thanks for the tip!</h3>
+        <p>We'll take a look and may feature it on the site.</p>
+      </div>
+    </div>
+  </div>
 
   <div class="container">
 
@@ -534,6 +699,72 @@
       .catch(() => {
         document.getElementById('top-story').innerHTML = '<p>No links yet. Check back soon.</p>';
       });
+
+    // ── Date in bar ──────────────────────────────────────────────
+    const now = new Date();
+    document.getElementById('bar-date').textContent = now.toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+
+    // ── Submission modal ─────────────────────────────────────────
+    function openSubmit() {
+      document.getElementById('submit-overlay').classList.add('open');
+      document.getElementById('submit-form-wrap').style.display = '';
+      document.getElementById('submit-success').style.display = 'none';
+      document.getElementById('sub-error').style.display = 'none';
+      document.getElementById('sub-btn').disabled = false;
+      document.getElementById('sub-btn').textContent = 'Submit';
+    }
+
+    function closeSubmit() {
+      document.getElementById('submit-overlay').classList.remove('open');
+    }
+
+    // Close on backdrop click
+    document.getElementById('submit-overlay').addEventListener('click', function(e) {
+      if (e.target === this) closeSubmit();
+    });
+
+    async function submitStory() {
+      const name = document.getElementById('sub-name').value.trim();
+      const email = document.getElementById('sub-email').value.trim();
+      const url = document.getElementById('sub-url').value.trim();
+      const note = document.getElementById('sub-note').value.trim();
+      const errEl = document.getElementById('sub-error');
+
+      if (!url.startsWith('http')) {
+        errEl.textContent = 'Please enter a valid URL.';
+        errEl.style.display = '';
+        return;
+      }
+
+      const btn = document.getElementById('sub-btn');
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+      errEl.style.display = 'none';
+
+      try {
+        const res = await fetch(WORKER + '/submissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name || 'Anonymous',
+            email,
+            url,
+            note,
+            submittedAt: new Date().toISOString()
+          })
+        });
+        if (!res.ok) throw new Error('Server error');
+        document.getElementById('submit-form-wrap').style.display = 'none';
+        document.getElementById('submit-success').style.display = 'block';
+      } catch (e) {
+        errEl.textContent = 'Something went wrong. Please try again.';
+        errEl.style.display = '';
+        btn.disabled = false;
+        btn.textContent = 'Submit';
+      }
+    }
   </script>
 
 </body>
