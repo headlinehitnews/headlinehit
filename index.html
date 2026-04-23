@@ -20,6 +20,7 @@
       color: #000000;
     }
 
+    /* ── Header ── */
     header {
       background: #ffffff;
       text-align: center;
@@ -41,77 +42,56 @@
       margin-top: 6px;
     }
 
-    .ticker {
+    /* ── Decorative bar (no ticker content) ── */
+    .bar {
       background: #111111;
-      color: #ffffff;
-      padding: 7px 20px;
-      font-family: Arial, sans-serif;
-      font-size: 0.82em;
-      display: flex;
-      justify-content: center;
-      gap: 28px;
-      flex-wrap: wrap;
+      height: 5px;
     }
 
-    .ticker-item {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      white-space: nowrap;
-    }
-
-    .ticker-name {
-      color: #999999;
-      font-size: 0.85em;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .ticker-price { font-weight: bold; color: #ffffff; }
-    .ticker-change { font-size: 0.9em; }
-    .ticker-change.up { color: #4caf50; }
-    .ticker-change.down { color: #f44336; }
-    .ticker-change.flat { color: #999999; }
-
+    /* ── Container ── */
     .container {
       max-width: 1100px;
       margin: 0 auto;
       padding: 20px;
     }
 
-    .hero {
+    /* ── Main two-column layout ── */
+    .main-columns {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      grid-template-columns: 70% 30%;
+      gap: 0;
       margin-top: 20px;
-      margin-bottom: 0;
-      align-items: stretch;
+      align-items: start;
     }
 
+    /* ── LEFT: Top Stories ── */
+    .top-stories-col {
+      padding-right: 20px;
+      border-right: 2px solid #dddddd;
+    }
+
+    /* Hero (index 0) */
     .top-story {
       display: flex;
       flex-direction: column;
-      height: 100%;
+      margin-bottom: 16px;
     }
 
-    /* Image wrapper needs position:relative so the overlay can be absolute inside it */
     .img-wrap {
       position: relative;
       display: block;
     }
 
-    .top-story .img-wrap { flex: 1; }
-
     .top-story .img-wrap img {
       width: 100%;
-      height: 100%;
+      height: 340px;
       object-fit: cover;
       display: block;
     }
 
     .top-story .no-image {
       width: 100%;
-      flex: 1;
+      height: 340px;
       background: #f0f0f0;
       display: flex;
       align-items: center;
@@ -134,10 +114,12 @@
 
     .top-story a.headline:hover { text-decoration: underline; }
 
+    /* 2x2 sub-grid (indices 1-4) */
     .sub-grid-2x2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
+      margin-bottom: 0;
     }
 
     .sub-card { display: flex; flex-direction: column; }
@@ -175,29 +157,28 @@
     .sub-card a.headline:hover { text-decoration: underline; }
     .sub-card a.headline:visited { color: #551a8b; }
 
+    /* Row of 6 (indices 5-10) */
     .sub-row-6 {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
-      gap: 12px;
+      gap: 10px;
       border-top: 2px solid #cc0000;
-      border-bottom: 2px solid #cccccc;
-      padding: 16px 0;
-      margin-top: 16px;
-      margin-bottom: 20px;
+      padding: 14px 0 0;
+      margin-top: 14px;
     }
 
     .sub-row-card { display: flex; flex-direction: column; }
 
     .sub-row-card .img-wrap img {
       width: 100%;
-      height: 90px;
+      height: 80px;
       object-fit: cover;
       display: block;
     }
 
     .sub-row-card .no-image {
       width: 100%;
-      height: 90px;
+      height: 80px;
       background: #f0f0f0;
       display: flex;
       align-items: center;
@@ -207,7 +188,7 @@
     }
 
     .sub-row-card a.headline {
-      font-size: 0.8em;
+      font-size: 0.75em;
       font-weight: bold;
       color: #000080;
       text-decoration: none;
@@ -215,13 +196,13 @@
       display: block;
       text-align: center;
       text-wrap: balance;
-      margin-top: 5px;
+      margin-top: 4px;
     }
 
     .sub-row-card a.headline:hover { text-decoration: underline; }
     .sub-row-card a.headline:visited { color: #551a8b; }
 
-    /* Source overlay on images */
+    /* ── Source overlay on images ── */
     .source-overlay {
       position: absolute;
       bottom: 0;
@@ -239,24 +220,63 @@
       text-overflow: ellipsis;
     }
 
-    /* Source label below text-only links */
-    .link-source {
-      font-size: 0.78em;
+    /* ── RIGHT: Other Stories ── */
+    .other-stories-col {
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .other-stories-label {
+      font-size: 0.7em;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #999999;
+      border-bottom: 2px solid #cc0000;
+      padding-bottom: 6px;
+      margin-bottom: 10px;
+    }
+
+    .other-link-item {
+      padding: 8px 0;
+      border-bottom: 1px solid #eeeeee;
+    }
+
+    .other-link-item a {
+      font-size: 0.95em;
+      color: #000080;
+      text-decoration: none;
+      display: block;
+      line-height: 1.4;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+
+    .other-link-item a:hover { text-decoration: underline; }
+    .other-link-item a:visited { color: #551a8b; }
+
+    .other-link-source {
+      font-size: 0.72em;
       color: #888888;
       margin-top: 2px;
-      padding-left: 1.4em;
+      padding-left: 1.2em;
+    }
+
+    /* ── Bottom overflow grid ── */
+    .bottom-divider {
+      border-top: 2px solid #cccccc;
+      margin-top: 20px;
+      padding-top: 20px;
     }
 
     .links-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px 30px;
-      border-top: 2px solid #cccccc;
-      padding-top: 20px;
     }
 
     .link-item {
-      margin-bottom: 0;
       padding-bottom: 10px;
       border-bottom: 1px solid #eeeeee;
     }
@@ -273,6 +293,14 @@
     .link-item a:hover { text-decoration: underline; }
     .link-item a:visited { color: #551a8b; }
 
+    .link-source {
+      font-size: 0.78em;
+      color: #888888;
+      margin-top: 2px;
+      padding-left: 1.4em;
+    }
+
+    /* ── Footer ── */
     footer {
       text-align: center;
       padding: 20px;
@@ -282,18 +310,42 @@
       margin-top: 40px;
     }
 
+    /* ── Mobile ── */
     @media (max-width: 768px) {
       header h1 { font-size: 1.8em; letter-spacing: 3px; }
       header p.tagline { font-size: 0.85em; }
-      .ticker { gap: 14px; font-size: 0.78em; padding: 6px 12px; }
-      .hero { grid-template-columns: 1fr; }
-      .top-story .img-wrap img, .top-story .no-image { height: 220px; }
+
+      .main-columns {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .top-stories-col {
+        padding-right: 0;
+        border-right: none;
+        border-bottom: 2px solid #dddddd;
+        padding-bottom: 20px;
+      }
+
+      .other-stories-col { padding-left: 0; }
+
+      .top-story .img-wrap img,
+      .top-story .no-image { height: 220px; }
+
       .top-story a.headline { font-size: 1.1em; }
+
       .sub-grid-2x2 { grid-template-columns: 1fr 1fr; }
-      .sub-card .img-wrap img, .sub-card .no-image { height: 110px; }
+
+      .sub-card .img-wrap img,
+      .sub-card .no-image { height: 110px; }
+
       .sub-row-6 { grid-template-columns: 1fr 1fr; }
-      .sub-row-card .img-wrap img, .sub-row-card .no-image { height: 100px; }
-      .sub-row-card a.headline { font-size: 0.85em; }
+
+      .sub-row-card .img-wrap img,
+      .sub-row-card .no-image { height: 90px; }
+
+      .sub-row-card a.headline { font-size: 0.82em; }
+
       .links-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
@@ -305,21 +357,32 @@
     <p class="tagline">The news, unspun.</p>
   </header>
 
-  <div class="ticker" id="ticker">
-    <div class="ticker-item"><span class="ticker-name">BTC</span><span class="ticker-price" id="t-btc">—</span><span class="ticker-change" id="t-btc-c"></span></div>
-    <div class="ticker-item"><span class="ticker-name">S&amp;P 500</span><span class="ticker-price" id="t-sp">—</span><span class="ticker-change" id="t-sp-c"></span></div>
-    <div class="ticker-item"><span class="ticker-name">Gold</span><span class="ticker-price" id="t-gold">—</span><span class="ticker-change" id="t-sp-c"></span></div>
-    <div class="ticker-item"><span class="ticker-name">Oil</span><span class="ticker-price" id="t-oil">—</span><span class="ticker-change" id="t-oil-c"></span></div>
-    <div class="ticker-item"><span class="ticker-name">USD/EUR</span><span class="ticker-price" id="t-eur">—</span><span class="ticker-change" id="t-eur-c"></span></div>
-  </div>
+  <div class="bar"></div>
 
   <div class="container">
-    <div class="hero">
-      <div class="top-story" id="top-story"></div>
-      <div class="sub-grid-2x2" id="sub-grid-2x2"></div>
+
+    <div class="main-columns">
+
+      <!-- LEFT: Top Stories -->
+      <div class="top-stories-col">
+        <div class="top-story" id="top-story"></div>
+        <div class="sub-grid-2x2" id="sub-grid-2x2"></div>
+        <div class="sub-row-6" id="sub-row-6"></div>
+      </div>
+
+      <!-- RIGHT: Other Stories -->
+      <div class="other-stories-col" id="other-stories-col">
+        <div class="other-stories-label">Other Stories</div>
+        <div id="other-links"></div>
+      </div>
+
     </div>
-    <div class="sub-row-6" id="sub-row-6"></div>
-    <div class="links-grid" id="links-grid"></div>
+
+    <!-- Bottom overflow grid -->
+    <div class="bottom-divider" id="bottom-section" style="display:none;">
+      <div class="links-grid" id="links-grid"></div>
+    </div>
+
   </div>
 
   <footer>
@@ -328,12 +391,12 @@
   </footer>
 
   <script>
+    const WORKER = 'https://news-worker.headlinehitnews.workers.dev';
+    const OTHER_COL_MAX = 10;
+    const TOP_COL_MAX = 11; // 1 hero + 4 sub + 6 row
+
     function getDomain(url) {
-      try {
-        return new URL(url).hostname.replace(/^www\./, '');
-      } catch (e) {
-        return '';
-      }
+      try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return ''; }
     }
 
     function makeOverlay(url) {
@@ -345,122 +408,98 @@
       return span;
     }
 
-    function fmtChange(pct) {
-      if (pct === null || isNaN(pct)) return { text: '', cls: 'flat' };
-      const sign = pct >= 0 ? '+' : '';
-      return { text: sign + pct.toFixed(2) + '%', cls: pct >= 0 ? 'up' : 'down' };
+    function makeImgWrap(url, image, alt) {
+      const wrap = document.createElement('a');
+      wrap.href = url; wrap.target = '_blank'; wrap.className = 'img-wrap';
+      const img = document.createElement('img');
+      img.src = image; img.alt = alt;
+      wrap.appendChild(img);
+      const overlay = makeOverlay(url);
+      if (overlay) wrap.appendChild(overlay);
+      return wrap;
     }
 
-    function setTicker(id, price, change) {
-      document.getElementById(id).textContent = price;
-      const el = document.getElementById(id + '-c');
-      const c = fmtChange(change);
-      el.textContent = c.text;
-      el.className = 'ticker-change ' + c.cls;
+    function makeNoImage(cls) {
+      const div = document.createElement('div');
+      div.className = cls + ' no-image';
+      div.textContent = 'No image';
+      return div;
     }
 
-    async function loadTicker() {
-      try {
-        const btcRes = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
-        const btcData = await btcRes.json();
-        setTicker('t-btc', '$' + btcData.bitcoin.usd.toLocaleString('en-US', { maximumFractionDigits: 0 }), btcData.bitcoin.usd_24h_change);
-      } catch (e) { document.getElementById('t-btc').textContent = 'N/A'; }
-
-      try {
-        const yRes = await fetch('https://news-worker.headlinehitnews.workers.dev/quotes');
-        const yData = await yRes.json();
-        const quotes = yData.quoteResponse.result;
-        quotes.forEach(q => {
-          const pct = q.regularMarketChangePercent;
-          if (q.symbol === '^GSPC') setTicker('t-sp', q.regularMarketPrice.toLocaleString('en-US', { maximumFractionDigits: 0 }), pct);
-          else if (q.symbol === 'GC=F') setTicker('t-gold', '$' + q.regularMarketPrice.toLocaleString('en-US', { maximumFractionDigits: 0 }), pct);
-          else if (q.symbol === 'CL=F') setTicker('t-oil', '$' + q.regularMarketPrice.toFixed(2), pct);
-          else if (q.symbol === 'EURUSD=X') setTicker('t-eur', q.regularMarketPrice.toFixed(4), pct);
-        });
-      } catch (e) {
-        ['t-sp', 't-gold', 't-oil', 't-eur'].forEach(id => { document.getElementById(id).textContent = 'N/A'; });
-      }
+    function makeHeadlineLink(url, text, cls) {
+      const a = document.createElement('a');
+      a.href = url; a.target = '_blank'; a.className = cls;
+      a.textContent = text;
+      return a;
     }
 
-    loadTicker();
-    setInterval(loadTicker, 60000);
-
-    fetch('https://news-worker.headlinehitnews.workers.dev/links')
-      .then(response => response.json())
+    fetch(WORKER + '/links')
+      .then(r => r.json())
       .then(data => {
         document.getElementById('last-updated').textContent =
           'Last updated: ' + new Date(data.lastUpdated).toLocaleString();
 
-        const links = data.links;
+        const links = data.links || [];
 
-        // TOP STORY
-        if (links.length > 0) {
-          const top = links[0];
-          const topDiv = document.getElementById('top-story');
-          if (top.image) {
-            const wrap = document.createElement('a');
-            wrap.href = top.url; wrap.target = '_blank'; wrap.className = 'img-wrap';
-            const img = document.createElement('img');
-            img.src = top.image; img.alt = top.headline;
-            wrap.appendChild(img);
-            const overlay = makeOverlay(top.url);
-            if (overlay) wrap.appendChild(overlay);
-            topDiv.appendChild(wrap);
-          } else {
-            const placeholder = document.createElement('div');
-            placeholder.className = 'no-image'; placeholder.textContent = 'No image';
-            topDiv.appendChild(placeholder);
+        // Split by position — default to 'top' for backward compat
+        const topLinks = links.filter(l => !l.position || l.position === 'top');
+        const otherLinks = links.filter(l => l.position === 'other');
+
+        // Overflow: top beyond 11, other beyond 10, mixed in original order
+        const topOverflow = topLinks.slice(TOP_COL_MAX);
+        const otherOverflow = otherLinks.slice(OTHER_COL_MAX);
+
+        // Merge overflow preserving relative order by original index
+        const overflowLinks = links.filter((l, i) => {
+          if (!l.position || l.position === 'top') {
+            return topLinks.indexOf(l) >= TOP_COL_MAX;
           }
-          const link = document.createElement('a');
-          link.href = top.url; link.target = '_blank'; link.className = 'headline';
-          link.textContent = top.headline; topDiv.appendChild(link);
+          return otherLinks.indexOf(l) >= OTHER_COL_MAX;
+        });
+
+        // ── Hero (top[0]) ──
+        const topDiv = document.getElementById('top-story');
+        if (topLinks.length > 0) {
+          const top = topLinks[0];
+          if (top.image) {
+            topDiv.appendChild(makeImgWrap(top.url, top.image, top.headline));
+          } else {
+            topDiv.appendChild(makeNoImage(''));
+          }
+          topDiv.appendChild(makeHeadlineLink(top.url, top.headline, 'headline'));
         }
 
-        // SUB-HEADLINES (2x2)
+        // ── 2x2 sub-grid (top[1-4]) ──
         const subGrid = document.getElementById('sub-grid-2x2');
-        links.slice(1, 5).forEach(item => {
+        topLinks.slice(1, 5).forEach(item => {
           const card = document.createElement('div'); card.className = 'sub-card';
           if (item.image) {
-            const wrap = document.createElement('a');
-            wrap.href = item.url; wrap.target = '_blank'; wrap.className = 'img-wrap';
-            const img = document.createElement('img'); img.src = item.image; img.alt = item.headline;
-            wrap.appendChild(img);
-            const overlay = makeOverlay(item.url);
-            if (overlay) wrap.appendChild(overlay);
-            card.appendChild(wrap);
+            card.appendChild(makeImgWrap(item.url, item.image, item.headline));
           } else {
-            const p = document.createElement('div'); p.className = 'no-image'; p.textContent = 'No image'; card.appendChild(p);
+            card.appendChild(makeNoImage(''));
           }
-          const link = document.createElement('a');
-          link.href = item.url; link.target = '_blank'; link.className = 'headline'; link.textContent = item.headline;
-          card.appendChild(link); subGrid.appendChild(card);
+          card.appendChild(makeHeadlineLink(item.url, item.headline, 'headline'));
+          subGrid.appendChild(card);
         });
 
-        // ROW OF 6
+        // ── Row of 6 (top[5-10]) ──
         const subRow = document.getElementById('sub-row-6');
-        links.slice(5, 11).forEach(item => {
+        topLinks.slice(5, 11).forEach(item => {
           const card = document.createElement('div'); card.className = 'sub-row-card';
           if (item.image) {
-            const wrap = document.createElement('a');
-            wrap.href = item.url; wrap.target = '_blank'; wrap.className = 'img-wrap';
-            const img = document.createElement('img'); img.src = item.image; img.alt = item.headline;
-            wrap.appendChild(img);
-            const overlay = makeOverlay(item.url);
-            if (overlay) wrap.appendChild(overlay);
-            card.appendChild(wrap);
+            card.appendChild(makeImgWrap(item.url, item.image, item.headline));
           } else {
-            const p = document.createElement('div'); p.className = 'no-image'; p.textContent = 'No image'; card.appendChild(p);
+            card.appendChild(makeNoImage(''));
           }
-          const link = document.createElement('a');
-          link.href = item.url; link.target = '_blank'; link.className = 'headline'; link.textContent = item.headline;
-          card.appendChild(link); subRow.appendChild(card);
+          card.appendChild(makeHeadlineLink(item.url, item.headline, 'headline'));
+          subRow.appendChild(card);
         });
 
-        // TEXT LINKS
-        const grid = document.getElementById('links-grid');
-        links.slice(11).forEach(item => {
-          const div = document.createElement('div'); div.className = 'link-item';
-          const prefix = item.emoji ? item.emoji : '&#9654;';
+        // ── Other Stories column (other[0-9]) ──
+        const otherEl = document.getElementById('other-links');
+        otherLinks.slice(0, OTHER_COL_MAX).forEach(item => {
+          const div = document.createElement('div'); div.className = 'other-link-item';
+          const prefix = item.emoji || '&#9654;';
           const a = document.createElement('a');
           a.href = item.url; a.target = '_blank';
           a.innerHTML = prefix + ' ' + item.headline;
@@ -468,12 +507,34 @@
           const domain = getDomain(item.url);
           if (domain) {
             const src = document.createElement('div');
-            src.className = 'link-source';
+            src.className = 'other-link-source';
             src.textContent = domain;
             div.appendChild(src);
           }
-          grid.appendChild(div);
+          otherEl.appendChild(div);
         });
+
+        // ── Bottom overflow grid ──
+        if (overflowLinks.length > 0) {
+          document.getElementById('bottom-section').style.display = '';
+          const grid = document.getElementById('links-grid');
+          overflowLinks.forEach(item => {
+            const div = document.createElement('div'); div.className = 'link-item';
+            const prefix = item.emoji || '&#9654;';
+            const a = document.createElement('a');
+            a.href = item.url; a.target = '_blank';
+            a.innerHTML = prefix + ' ' + item.headline;
+            div.appendChild(a);
+            const domain = getDomain(item.url);
+            if (domain) {
+              const src = document.createElement('div');
+              src.className = 'link-source';
+              src.textContent = domain;
+              div.appendChild(src);
+            }
+            grid.appendChild(div);
+          });
+        }
       })
       .catch(() => {
         document.getElementById('top-story').innerHTML = '<p>No links yet. Check back soon.</p>';

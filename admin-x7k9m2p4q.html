@@ -455,7 +455,7 @@
 
     /* ── Category / position grids ── */
     .category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-    .position-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+    .position-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
 
     .cat-btn, .pos-btn {
       border: 2px solid var(--border);
@@ -644,9 +644,8 @@
     <div id="step-position" style="display:none;">
       <div class="section-label">Step 3 — Placement</div>
       <div class="position-grid" id="position-grid">
-        <button class="pos-btn" onclick="selectPosition('1')"><strong>1</strong>Top Headline</button>
-        <button class="pos-btn" onclick="selectPosition('2')"><strong>2</strong>Sub-Headlines</button>
-        <button class="pos-btn" onclick="selectPosition('3')"><strong>3</strong>Link Only</button>
+        <button class="pos-btn" onclick="selectPosition('top')"><strong>★</strong>Top Story</button>
+        <button class="pos-btn" onclick="selectPosition('other')"><strong>→</strong>Other Stories</button>
       </div>
 
       <div class="section-label">Category</div>
@@ -1099,8 +1098,8 @@
 
   function selectPosition(p) {
     modalState.position = p;
-    document.querySelectorAll('.pos-btn').forEach((b, i) => {
-      b.classList.toggle('selected', String(i + 1) === p);
+    document.querySelectorAll('.pos-btn').forEach(b => {
+      b.classList.toggle('selected', b.getAttribute('onclick').includes("'" + p + "'"));
     });
   }
 
@@ -1111,7 +1110,7 @@
 
   // ── Submit ────────────────────────────────────────────────────────
   async function submitLink() {
-    if (editIndex === null && !modalState.position) { status('Please choose a placement', 'error'); return; }
+    if (editIndex === null && !modalState.position) { status('Please choose Top Story or Other Stories', 'error'); return; }
     if (modalState.categoryIndex === null || modalState.categoryIndex < 0) { status('Please choose a category', 'error'); return; }
     if (!modalState.headline) { status('Please choose or write a headline', 'error'); return; }
 
@@ -1134,19 +1133,26 @@
       };
       if (modalState.image) newLink.image = modalState.image;
 
+      newLink.position = modalState.position;
+
       if (editIndex !== null) {
         const existing = links[editIndex];
         if (!newLink.image && existing.image) newLink.image = existing.image;
         links[editIndex] = newLink;
       } else {
-        if (modalState.position === '1') {
+        // Insert at front of its position group
+        if (modalState.position === 'top') {
           links.unshift(newLink);
-        } else if (modalState.position === '2') {
-          links.splice(1, 0, newLink);
         } else {
-          links.splice(Math.min(11, links.length), 0, newLink);
+          // Insert before first 'other' link, or at beginning if none exist yet
+          const firstOther = links.findIndex(l => l.position === 'other');
+          if (firstOther === -1) {
+            links.unshift(newLink);
+          } else {
+            links.splice(firstOther, 0, newLink);
+          }
         }
-        if (links.length > 50) links.splice(50);
+        if (links.length > 100) links.splice(100);
       }
 
       data.links = links;
