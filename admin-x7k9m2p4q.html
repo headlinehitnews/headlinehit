@@ -483,7 +483,6 @@
     <div class="card-title">Current links on site</div>
     <div class="row" style="margin-bottom:12px;">
       <button class="btn btn-red btn-sm" onclick="loadCurrentLinks()">↺ Refresh</button>
-      <button class="btn btn-danger btn-sm" onclick="confirmClearAll()">🗑 Clear All</button>
     </div>
     <div id="current-links-list"><p class="text-muted">Click Refresh to load current links.</p></div>
   </div>
@@ -564,7 +563,7 @@
 
 <script>
   const WORKER = 'https://news-worker.headlinehitnews.workers.dev';
-  const SECRET = 'hh_secret_2024_xk92'; // same value as BOT_SECRET in Railway + Cloudflare Worker
+  const SECRET = 'YOUR_BOT_SECRET_HERE'; // same value as BOT_SECRET in Railway + Cloudflare Worker
 
   const CATEGORIES = [
     { label: 'US Politics',       emoji: '🏦' },
@@ -1004,22 +1003,6 @@
       status('Deleted.', 'ok');
     } catch (e) {
       status('Delete failed: ' + e.message, 'error');
-    }
-  }
-
-  // ── Clear all ───────────────────────────────────────────────────
-  async function confirmClearAll() {
-    if (!confirm('Clear ALL links from the site? This cannot be undone.')) return;
-    status('Clearing...', '', true);
-    try {
-      const data = { links: [], lastUpdated: new Date().toISOString() };
-      await fetch(WORKER + '/links', { method: 'POST', headers: authHeader, body: JSON.stringify(data) });
-      currentLinks = [];
-      document.getElementById('header-count').textContent = '0 links live';
-      renderCurrentLinks();
-      status('All links cleared.', 'ok');
-    } catch (e) {
-      status('Clear failed: ' + e.message, 'error');
     }
   }
 
