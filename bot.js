@@ -804,8 +804,8 @@ async function handleMessage(msg) {
           data.links.splice(firstOther, 0, newLink);
         }
       }
-      if (data.links.length > 50) {
-        data.links = data.links.slice(0, 50);
+      if (data.links.length > 5000) {
+        data.links = data.links.slice(0, 5000);
       }
       data.lastUpdated = new Date().toISOString();
       await saveLinks(data);
