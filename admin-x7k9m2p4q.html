@@ -622,7 +622,7 @@
       <div id="headline-loading" class="text-muted">Generating headline options...</div>
       <div id="headline-options"></div>
       <div class="field mt8">
-        <label>Or write your own</label>
+        <label>Click a headline above to edit it, or write your own</label>
         <input type="text" id="custom-headline" placeholder="Your headline..." oninput="onCustomHeadline()">
       </div>
       <hr class="divider">
@@ -1021,7 +1021,10 @@
             document.querySelectorAll('.headline-option').forEach(o => o.classList.remove('selected'));
             div.classList.add('selected');
             modalState.headline = h;
-            document.getElementById('custom-headline').value = '';
+            const customInput = document.getElementById('custom-headline');
+            customInput.value = h;
+            customInput.focus();
+            customInput.setSelectionRange(h.length, h.length);
           };
           document.getElementById('headline-options').appendChild(div);
           if (i === 0 && !modalState.headline) modalState.headline = h;
