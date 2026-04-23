@@ -740,7 +740,7 @@ async function handleMessage(msg) {
   if (pending.step === 'awaiting_headline') {
     // Fallback: manual headline entry (AI generation failed)
     await savePending(userId, { ...pending, headline: text, step: 'awaiting_position' });
-    bot.sendMessage(chatId, 'Where do you want to place this?\n\n"1" - Top Headline\n"2" - Sub-Headlines\n"3" - Link Only Headlines');
+    bot.sendMessage(chatId, 'Where do you want to place this?\n\n"1" - Top Story\n"2" - Other Stories');
     return;
   }
 
@@ -757,17 +757,18 @@ async function handleMessage(msg) {
       return;
     }
     await savePending(userId, { ...pending, headline: chosenHeadline, step: 'awaiting_position' });
-    bot.sendMessage(chatId, 'Where do you want to place this?\n\n"1" - Top Headline\n"2" - Sub-Headlines\n"3" - Link Only Headlines');
+    bot.sendMessage(chatId, 'Where do you want to place this?\n\n"1" - Top Story\n"2" - Other Stories');
     return;
   }
 
   if (pending.step === 'awaiting_position') {
-    const choice = text.trim().toLowerCase();
-    if (choice !== '1' && choice !== '2' && choice !== '3') {
-      bot.sendMessage(chatId, 'Please reply "1" (Top Headline), "2" (Sub-Headlines), or "3" (Link Only Headlines).');
+    const choice = text.trim();
+    if (choice !== '1' && choice !== '2') {
+      bot.sendMessage(chatId, 'Please reply "1" (Top Story) or "2" (Other Stories).');
       return;
     }
-    await savePending(userId, { ...pending, position: choice, step: 'awaiting_category' });
+    const position = choice === '1' ? 'top' : 'other';
+    await savePending(userId, { ...pending, position, step: 'awaiting_category' });
     bot.sendMessage(chatId, CATEGORY_MESSAGE);
     return;
   }
@@ -790,16 +791,18 @@ async function handleMessage(msg) {
       if (pending.image) {
         newLink.image = pending.image;
       }
-      if (pending.position === '1') {
-        // Top Headline — insert at front
+      newLink.position = pending.position;
+      if (pending.position === 'top') {
+        // Insert at front
         data.links.unshift(newLink);
-      } else if (pending.position === '2') {
-        // Sub-Headlines — insert at index 1 (right after top story)
-        data.links.splice(1, 0, newLink);
       } else {
-        // Link Only Headlines — insert at index 11 (first text link slot)
-        const insertAt = Math.min(11, data.links.length);
-        data.links.splice(insertAt, 0, newLink);
+        // Insert before first 'other' link, or at front if none exist
+        const firstOther = data.links.findIndex(l => l.position === 'other');
+        if (firstOther === -1) {
+          data.links.unshift(newLink);
+        } else {
+          data.links.splice(firstOther, 0, newLink);
+        }
       }
       if (data.links.length > 50) {
         data.links = data.links.slice(0, 50);
@@ -808,7 +811,7 @@ async function handleMessage(msg) {
       await saveLinks(data);
       await clearPending(userId);
       console.log('Links saved successfully to Cloudflare KV');
-      const sectionName = pending.position === '1' ? 'Top Headline' : pending.position === '2' ? 'Sub-Headlines' : 'Link Only Headlines';
+      const sectionName = pending.position === 'top' ? 'Top Stories' : 'Other Stories';
       bot.sendMessage(chatId, 'Done! Added to ' + sectionName + '.' + READY);
     } catch (err) {
       bot.sendMessage(chatId, 'Something went wrong updating the site. Try again.');
