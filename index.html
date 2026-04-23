@@ -114,8 +114,8 @@
 
     .top-story a.headline:hover { text-decoration: underline; }
 
-    /* 2x2 sub-grid (indices 1-4) */
-    .sub-grid-2x2 {
+    /* 2-wide sub-row (indices 1-2) */
+    .sub-row-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
@@ -126,14 +126,14 @@
 
     .sub-card .img-wrap img {
       width: 100%;
-      height: 140px;
+      height: 200px;
       object-fit: cover;
       display: block;
     }
 
     .sub-card .no-image {
       width: 100%;
-      height: 140px;
+      height: 200px;
       background: #f0f0f0;
       display: flex;
       align-items: center;
@@ -157,10 +157,10 @@
     .sub-card a.headline:hover { text-decoration: underline; }
     .sub-card a.headline:visited { color: #551a8b; }
 
-    /* Row of 6 (indices 5-10) */
-    .sub-row-6 {
+    /* 2x4 grid (indices 3-10) */
+    .sub-grid-8 {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 10px;
       border-top: 2px solid #cc0000;
       padding: 14px 0 0;
@@ -171,14 +171,14 @@
 
     .sub-row-card .img-wrap img {
       width: 100%;
-      height: 80px;
+      height: 100px;
       object-fit: cover;
       display: block;
     }
 
     .sub-row-card .no-image {
       width: 100%;
-      height: 80px;
+      height: 100px;
       background: #f0f0f0;
       display: flex;
       align-items: center;
@@ -334,12 +334,12 @@
 
       .top-story a.headline { font-size: 1.1em; }
 
-      .sub-grid-2x2 { grid-template-columns: 1fr 1fr; }
+      .sub-row-2 { grid-template-columns: 1fr 1fr; }
 
       .sub-card .img-wrap img,
-      .sub-card .no-image { height: 110px; }
+      .sub-card .no-image { height: 140px; }
 
-      .sub-row-6 { grid-template-columns: 1fr 1fr; }
+      .sub-grid-8 { grid-template-columns: 1fr 1fr; }
 
       .sub-row-card .img-wrap img,
       .sub-row-card .no-image { height: 90px; }
@@ -366,8 +366,8 @@
       <!-- LEFT: Top Stories -->
       <div class="top-stories-col">
         <div class="top-story" id="top-story"></div>
-        <div class="sub-grid-2x2" id="sub-grid-2x2"></div>
-        <div class="sub-row-6" id="sub-row-6"></div>
+        <div class="sub-row-2" id="sub-row-2"></div>
+        <div class="sub-grid-8" id="sub-grid-8"></div>
       </div>
 
       <!-- RIGHT: Other Stories -->
@@ -469,9 +469,9 @@
           topDiv.appendChild(makeHeadlineLink(top.url, top.headline, 'headline'));
         }
 
-        // ── 2x2 sub-grid (top[1-4]) ──
-        const subGrid = document.getElementById('sub-grid-2x2');
-        topLinks.slice(1, 5).forEach(item => {
+        // ── 2-wide sub-row (top[1-2]) ──
+        const subRow2 = document.getElementById('sub-row-2');
+        topLinks.slice(1, 3).forEach(item => {
           const card = document.createElement('div'); card.className = 'sub-card';
           if (item.image) {
             card.appendChild(makeImgWrap(item.url, item.image, item.headline));
@@ -479,12 +479,12 @@
             card.appendChild(makeNoImage(''));
           }
           card.appendChild(makeHeadlineLink(item.url, item.headline, 'headline'));
-          subGrid.appendChild(card);
+          subRow2.appendChild(card);
         });
 
-        // ── Row of 6 (top[5-10]) ──
-        const subRow = document.getElementById('sub-row-6');
-        topLinks.slice(5, 11).forEach(item => {
+        // ── 2x4 grid (top[3-10]) ──
+        const subGrid8 = document.getElementById('sub-grid-8');
+        topLinks.slice(3, 11).forEach(item => {
           const card = document.createElement('div'); card.className = 'sub-row-card';
           if (item.image) {
             card.appendChild(makeImgWrap(item.url, item.image, item.headline));
@@ -492,7 +492,7 @@
             card.appendChild(makeNoImage(''));
           }
           card.appendChild(makeHeadlineLink(item.url, item.headline, 'headline'));
-          subRow.appendChild(card);
+          subGrid8.appendChild(card);
         });
 
         // ── Other Stories column (other[0-9]) ──
