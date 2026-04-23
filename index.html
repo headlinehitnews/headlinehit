@@ -94,9 +94,15 @@
       height: 100%;
     }
 
-    .top-story a.img-link { display: block; flex: 1; }
+    /* Image wrapper needs position:relative so the overlay can be absolute inside it */
+    .img-wrap {
+      position: relative;
+      display: block;
+    }
 
-    .top-story img {
+    .top-story .img-wrap { flex: 1; }
+
+    .top-story .img-wrap img {
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -135,9 +141,8 @@
     }
 
     .sub-card { display: flex; flex-direction: column; }
-    .sub-card a.img-link { display: block; }
 
-    .sub-card img {
+    .sub-card .img-wrap img {
       width: 100%;
       height: 140px;
       object-fit: cover;
@@ -182,9 +187,8 @@
     }
 
     .sub-row-card { display: flex; flex-direction: column; }
-    .sub-row-card a.img-link { display: block; }
 
-    .sub-row-card img {
+    .sub-row-card .img-wrap img {
       width: 100%;
       height: 90px;
       object-fit: cover;
@@ -216,6 +220,32 @@
 
     .sub-row-card a.headline:hover { text-decoration: underline; }
     .sub-row-card a.headline:visited { color: #551a8b; }
+
+    /* Source overlay on images */
+    .source-overlay {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.82);
+      color: #444444;
+      font-size: 0.7em;
+      font-family: Arial, sans-serif;
+      padding: 2px 6px;
+      line-height: 1.5;
+      pointer-events: none;
+      max-width: 80%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Source label below text-only links */
+    .link-source {
+      font-size: 0.78em;
+      color: #888888;
+      margin-top: 2px;
+      padding-left: 1.4em;
+    }
 
     .links-grid {
       display: grid;
@@ -257,12 +287,12 @@
       header p.tagline { font-size: 0.85em; }
       .ticker { gap: 14px; font-size: 0.78em; padding: 6px 12px; }
       .hero { grid-template-columns: 1fr; }
-      .top-story img, .top-story .no-image { height: 220px; flex: none; }
+      .top-story .img-wrap img, .top-story .no-image { height: 220px; }
       .top-story a.headline { font-size: 1.1em; }
       .sub-grid-2x2 { grid-template-columns: 1fr 1fr; }
-      .sub-card img, .sub-card .no-image { height: 110px; }
+      .sub-card .img-wrap img, .sub-card .no-image { height: 110px; }
       .sub-row-6 { grid-template-columns: 1fr 1fr; }
-      .sub-row-card img, .sub-row-card .no-image { height: 100px; }
+      .sub-row-card .img-wrap img, .sub-row-card .no-image { height: 100px; }
       .sub-row-card a.headline { font-size: 0.85em; }
       .links-grid { grid-template-columns: repeat(2, 1fr); }
     }
@@ -278,7 +308,7 @@
   <div class="ticker" id="ticker">
     <div class="ticker-item"><span class="ticker-name">BTC</span><span class="ticker-price" id="t-btc">—</span><span class="ticker-change" id="t-btc-c"></span></div>
     <div class="ticker-item"><span class="ticker-name">S&amp;P 500</span><span class="ticker-price" id="t-sp">—</span><span class="ticker-change" id="t-sp-c"></span></div>
-    <div class="ticker-item"><span class="ticker-name">Gold</span><span class="ticker-price" id="t-gold">—</span><span class="ticker-change" id="t-gold-c"></span></div>
+    <div class="ticker-item"><span class="ticker-name">Gold</span><span class="ticker-price" id="t-gold">—</span><span class="ticker-change" id="t-sp-c"></span></div>
     <div class="ticker-item"><span class="ticker-name">Oil</span><span class="ticker-price" id="t-oil">—</span><span class="ticker-change" id="t-oil-c"></span></div>
     <div class="ticker-item"><span class="ticker-name">USD/EUR</span><span class="ticker-price" id="t-eur">—</span><span class="ticker-change" id="t-eur-c"></span></div>
   </div>
@@ -298,6 +328,23 @@
   </footer>
 
   <script>
+    function getDomain(url) {
+      try {
+        return new URL(url).hostname.replace(/^www\./, '');
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function makeOverlay(url) {
+      const domain = getDomain(url);
+      if (!domain) return null;
+      const span = document.createElement('span');
+      span.className = 'source-overlay';
+      span.textContent = domain;
+      return span;
+    }
+
     function fmtChange(pct) {
       if (pct === null || isNaN(pct)) return { text: '', cls: 'flat' };
       const sign = pct >= 0 ? '+' : '';
@@ -346,15 +393,19 @@
 
         const links = data.links;
 
+        // TOP STORY
         if (links.length > 0) {
           const top = links[0];
           const topDiv = document.getElementById('top-story');
           if (top.image) {
-            const imgLink = document.createElement('a');
-            imgLink.href = top.url; imgLink.target = '_blank'; imgLink.className = 'img-link';
+            const wrap = document.createElement('a');
+            wrap.href = top.url; wrap.target = '_blank'; wrap.className = 'img-wrap';
             const img = document.createElement('img');
             img.src = top.image; img.alt = top.headline;
-            imgLink.appendChild(img); topDiv.appendChild(imgLink);
+            wrap.appendChild(img);
+            const overlay = makeOverlay(top.url);
+            if (overlay) wrap.appendChild(overlay);
+            topDiv.appendChild(wrap);
           } else {
             const placeholder = document.createElement('div');
             placeholder.className = 'no-image'; placeholder.textContent = 'No image';
@@ -365,14 +416,18 @@
           link.textContent = top.headline; topDiv.appendChild(link);
         }
 
+        // SUB-HEADLINES (2x2)
         const subGrid = document.getElementById('sub-grid-2x2');
         links.slice(1, 5).forEach(item => {
           const card = document.createElement('div'); card.className = 'sub-card';
           if (item.image) {
-            const imgLink = document.createElement('a');
-            imgLink.href = item.url; imgLink.target = '_blank'; imgLink.className = 'img-link';
+            const wrap = document.createElement('a');
+            wrap.href = item.url; wrap.target = '_blank'; wrap.className = 'img-wrap';
             const img = document.createElement('img'); img.src = item.image; img.alt = item.headline;
-            imgLink.appendChild(img); card.appendChild(imgLink);
+            wrap.appendChild(img);
+            const overlay = makeOverlay(item.url);
+            if (overlay) wrap.appendChild(overlay);
+            card.appendChild(wrap);
           } else {
             const p = document.createElement('div'); p.className = 'no-image'; p.textContent = 'No image'; card.appendChild(p);
           }
@@ -381,14 +436,18 @@
           card.appendChild(link); subGrid.appendChild(card);
         });
 
+        // ROW OF 6
         const subRow = document.getElementById('sub-row-6');
         links.slice(5, 11).forEach(item => {
           const card = document.createElement('div'); card.className = 'sub-row-card';
           if (item.image) {
-            const imgLink = document.createElement('a');
-            imgLink.href = item.url; imgLink.target = '_blank'; imgLink.className = 'img-link';
+            const wrap = document.createElement('a');
+            wrap.href = item.url; wrap.target = '_blank'; wrap.className = 'img-wrap';
             const img = document.createElement('img'); img.src = item.image; img.alt = item.headline;
-            imgLink.appendChild(img); card.appendChild(imgLink);
+            wrap.appendChild(img);
+            const overlay = makeOverlay(item.url);
+            if (overlay) wrap.appendChild(overlay);
+            card.appendChild(wrap);
           } else {
             const p = document.createElement('div'); p.className = 'no-image'; p.textContent = 'No image'; card.appendChild(p);
           }
@@ -397,11 +456,22 @@
           card.appendChild(link); subRow.appendChild(card);
         });
 
+        // TEXT LINKS
         const grid = document.getElementById('links-grid');
         links.slice(11).forEach(item => {
           const div = document.createElement('div'); div.className = 'link-item';
           const prefix = item.emoji ? item.emoji : '&#9654;';
-          div.innerHTML = '<a href="' + item.url + '" target="_blank">' + prefix + ' ' + item.headline + '</a>';
+          const a = document.createElement('a');
+          a.href = item.url; a.target = '_blank';
+          a.innerHTML = prefix + ' ' + item.headline;
+          div.appendChild(a);
+          const domain = getDomain(item.url);
+          if (domain) {
+            const src = document.createElement('div');
+            src.className = 'link-source';
+            src.textContent = domain;
+            div.appendChild(src);
+          }
           grid.appendChild(div);
         });
       })
