@@ -566,6 +566,13 @@
           </select>
         </div>
         <div id="story-count"></div>
+      <div>
+        <button class="btn btn-outline btn-sm" onclick="toggleDiagnostics()" id="diag-btn">🔍 Feed Status</button>
+      </div>
+      <div id="diag-panel" style="display:none;margin-top:8px;border-top:1px solid var(--border);padding-top:8px;">
+        <button class="btn btn-red btn-sm" onclick="runDiagnostics()" id="diag-run-btn">Run Feed Test</button>
+        <div id="diag-results" style="margin-top:8px;font-size:0.78em;max-height:300px;overflow-y:auto;"></div>
+      </div>
       </div>
       <div id="story-list">
         <div style="padding:20px;color:var(--muted);font-size:0.85em;">
@@ -1701,6 +1708,38 @@
 
   // Auto-dismiss submission after publishing if one was approved
   // (handled inside submitLink directly via window._pendingSubmissionId check)
+
+  // ── Feed diagnostics ─────────────────────────────────────────────
+  function toggleDiagnostics() {
+    const panel = document.getElementById('diag-panel');
+    panel.style.display = panel.style.display === 'none' ? '' : 'none';
+  }
+
+  async function runDiagnostics() {
+    const btn = document.getElementById('diag-run-btn');
+    const results = document.getElementById('diag-results');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Testing all feeds...';
+    results.innerHTML = '<span style="color:var(--muted);">Testing ' + '~120' + ' feeds — this takes about 10 seconds...</span>';
+
+    try {
+      const res = await fetch(WORKER + '/admin/feed-diagnostics', { headers: authHeader });
+      const data = await res.json();
+      const ok = data.filter(f => f.ok);
+      const fail = data.filter(f => !f.ok);
+
+      results.innerHTML =
+        '<div style="margin-bottom:6px;font-weight:bold;color:var(--success);">✅ Working (' + ok.length + ')</div>' +
+        ok.map(f => `<div style="color:var(--success);padding:1px 0;">• ${esc(f.name)} <span style="color:var(--muted)">(${f.ms}ms)</span></div>`).join('') +
+        '<div style="margin:8px 0 4px;font-weight:bold;color:var(--danger);">❌ Failed (' + fail.length + ')</div>' +
+        fail.map(f => `<div style="color:var(--danger);padding:1px 0;">• ${esc(f.name)}: <span style="color:var(--muted)">${esc(f.reason || 'unknown')}</span></div>`).join('');
+    } catch (e) {
+      results.innerHTML = '<span style="color:var(--danger);">Diagnostics failed: ' + esc(e.message) + '</span>';
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Run Feed Test';
+  }
 
   // ── Init ──────────────────────────────────────────────────────────
   loadCurrentLinks();
