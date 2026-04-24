@@ -1034,9 +1034,13 @@
       return;
     }
 
-    el.innerHTML = filtered.map(s => `
+    // Store filtered list for click lookup
+    filteredStories = filtered;
+
+    el.innerHTML = filtered.map((s, i) => `
       <div class="story-item${activeStory && activeStory.url === s.url ? ' active' : ''}"
-           onclick='previewStory(${JSON.stringify(s)}, this)'>
+           data-story-idx="${i}"
+           onclick="handleStoryClick(this)">
         <div class="story-meta">
           <span class="story-source">${esc(s.source)}</span>
           <span class="story-time">${timeAgo(s.pubDate)}</span>
@@ -1044,6 +1048,15 @@
         <div class="story-headline-text">${esc(s.headline)}</div>
       </div>
     `).join('');
+  }
+
+  // ── Story index lookup (safe alternative to inline JSON) ────────
+  let filteredStories = [];
+
+  function handleStoryClick(el) {
+    const idx = parseInt(el.getAttribute('data-story-idx'));
+    const story = filteredStories[idx];
+    if (story) previewStory(story, el);
   }
 
   // ── Preview pane ──────────────────────────────────────────────────
