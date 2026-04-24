@@ -726,6 +726,9 @@
         <div class="section-label">Image</div>
         <div id="image-loading" class="text-muted" style="font-size:0.8em;margin-bottom:6px;"></div>
         <div class="image-options" id="image-options"></div>
+        <button class="btn btn-outline btn-sm" id="load-more-images-btn" style="display:none;margin-bottom:8px;" onclick="loadMoreImages()">
+          ↓ Load More Images
+        </button>
         <input type="url" id="custom-image-url" placeholder="Or paste image URL..." oninput="onCustomImageUrl()" style="margin-bottom:4px;">
         <div id="custom-image-preview" style="display:none;margin-bottom:6px;">
           <img id="custom-image-preview-img"
@@ -1233,6 +1236,9 @@
     document.getElementById('image-options').innerHTML = '';
     document.getElementById('headline-options').innerHTML = '';
     document.getElementById('custom-image-url').value = '';
+    document.getElementById('load-more-images-btn').style.display = 'none';
+    document.getElementById('load-more-images-btn').disabled = false;
+    document.getElementById('load-more-images-btn').textContent = '↓ Load More Images';
     document.getElementById('custom-image-preview').style.display = 'none';
     document.getElementById('custom-image-preview-img').src = '';
     document.getElementById('custom-image-preview-img').style.borderColor = 'var(--border)';
@@ -1305,10 +1311,41 @@
         data.images.forEach((img, i) => addImageOption(img, i === 0));
         if (!modalState.image) modalState.image = data.images[0];
       } else {
-        document.getElementById('image-loading').textContent = 'No preview images found. Paste a URL or continue without.';
+        document.getElementById('image-loading').textContent = 'No preview images found.';
       }
+      document.getElementById('load-more-images-btn').style.display = '';
     } catch (e) {
       document.getElementById('image-loading').textContent = 'Could not fetch images.';
+      document.getElementById('load-more-images-btn').style.display = '';
+    }
+  }
+
+  async function loadMoreImages() {
+    const btn = document.getElementById('load-more-images-btn');
+    btn.disabled = true;
+    btn.textContent = '↓ Loading...';
+
+    // Collect already-shown image URLs to exclude
+    const existing = [...document.querySelectorAll('.image-option img')].map(img => img.src);
+
+    try {
+      const res = await fetch(WORKER + '/admin/scrape-images', {
+        method: 'POST',
+        headers: authHeader,
+        body: JSON.stringify({ url: modalState.url, exclude: existing })
+      });
+      const data = await res.json();
+      if (data.images && data.images.length > 0) {
+        data.images.forEach(img => addImageOption(img, false));
+        btn.textContent = '↓ Load More Images';
+        btn.disabled = false;
+      } else {
+        btn.textContent = 'No more images found';
+        btn.disabled = true;
+      }
+    } catch (e) {
+      btn.textContent = 'Failed to load images';
+      btn.disabled = true;
     }
   }
 
@@ -1361,6 +1398,9 @@
   function clearImage() {
     document.querySelectorAll('.image-option').forEach(o => o.classList.remove('selected'));
     document.getElementById('custom-image-url').value = '';
+    document.getElementById('load-more-images-btn').style.display = 'none';
+    document.getElementById('load-more-images-btn').disabled = false;
+    document.getElementById('load-more-images-btn').textContent = '↓ Load More Images';
     document.getElementById('custom-image-preview').style.display = 'none';
     document.getElementById('custom-image-preview-img').src = '';
     document.getElementById('custom-image-preview-img').style.borderColor = 'var(--border)';
