@@ -1587,16 +1587,22 @@
 
       currentLinks = links;
       document.getElementById('header-count').textContent = currentLinks.length + ' links live';
+      // Capture before closeModal clears modalState
+      const wasNewStory = editIndex === null;
+      const wasTopStory = modalState.position === 'top';
+      const sharedHeadline = modalState.headline;
+      const sharedUrl = modalState.url;
+
       closeModal();
       status(editIndex !== null ? 'Link updated!' : 'Link published!', 'ok');
       renderCurrentLinks();
       loadDailyCount();
 
       // Offer Bluesky share for new Top Stories
-      if (editIndex === null && modalState.position === 'top') {
+      if (wasNewStory && wasTopStory) {
         setTimeout(() => {
           if (confirm('Share this story to Bluesky?')) {
-            openBluesky({ headline: modalState.headline, url: modalState.url });
+            openBluesky({ headline: sharedHeadline, url: sharedUrl });
           }
         }, 300);
       }
