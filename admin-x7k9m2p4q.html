@@ -1050,10 +1050,12 @@
         batchIndex++;
       } while (batchIndex < totalBatches);
 
-      // Sort by pubDate — most recent first
+      // Sort by pubDate — most recent first, no date goes to bottom
       allStories = combinedStories.sort((a, b) => {
         const da = a.pubDate ? new Date(a.pubDate) : new Date(0);
         const db = b.pubDate ? new Date(b.pubDate) : new Date(0);
+        if (isNaN(da)) return 1;
+        if (isNaN(db)) return -1;
         return db - da;
       });
 
