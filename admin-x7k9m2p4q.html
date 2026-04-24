@@ -796,6 +796,26 @@
 
   const authHeader = { 'Authorization': 'Bearer ' + SECRET, 'Content-Type': 'application/json' };
 
+  // Known paywall / login-required sites
+  const PAYWALL_DOMAINS = new Set([
+    'nytimes.com', 'washingtonpost.com', 'wsj.com', 'ft.com',
+    'theatlantic.com', 'newyorker.com', 'economist.com', 'bloomberg.com',
+    'thedispatch.com', 'theathletic.com', 'newscientist.com', 'nature.com',
+    'wired.com', 'bostonglobe.com', 'latimes.com', 'sfchronicle.com',
+    'chicagotribune.com', 'thetimes.co.uk', 'telegraph.co.uk',
+  ]);
+
+  function isPaywall(url) {
+    try {
+      const host = new URL(url).hostname.replace(/^www\./, '');
+      return PAYWALL_DOMAINS.has(host);
+    } catch (e) { return false; }
+  }
+
+  function paywallBadge() {
+    return '<span title="Paywall — readers may not be able to read this article" style="background:#f59e0b;color:#fff;font-size:0.65em;font-weight:bold;padding:1px 5px;border-radius:3px;margin-left:5px;vertical-align:middle;">$</span>';
+  }
+
   let allStories = [];
   let currentLinks = [];
   let modalState = {};
@@ -1060,6 +1080,7 @@
            onclick="handleStoryClick(this)">
         <div class="story-meta">
           <span class="story-source">${esc(s.source)}</span>
+          ${isPaywall(s.url) ? paywallBadge() : ''}
           <span class="story-time">${timeAgo(s.pubDate)}</span>
         </div>
         <div class="story-headline-text">${esc(s.headline)}</div>
@@ -1088,7 +1109,11 @@
     card.style.display = 'flex';
 
     // Populate header
-    document.getElementById('preview-card-source').textContent = story.source || getDomain(story.url);
+    const sourceEl = document.getElementById('preview-card-source');
+    sourceEl.textContent = story.source || getDomain(story.url);
+    if (isPaywall(story.url)) {
+      sourceEl.innerHTML += ' <span title="Paywall site" style="background:#f59e0b;color:#fff;font-size:0.7em;font-weight:bold;padding:1px 5px;border-radius:3px;">$ PAYWALL</span>';
+    }
     document.getElementById('preview-card-headline').textContent = story.headline;
     document.getElementById('preview-card-time').textContent = timeAgo(story.pubDate);
 
