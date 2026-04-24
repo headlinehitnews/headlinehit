@@ -1017,8 +1017,8 @@
     btn.innerHTML = '<span class="spinner"></span>';
     status('Fetching from all RSS feeds...', '', true);
     document.getElementById('story-list').innerHTML =
-      '<div style="padding:20px;color:var(--muted);font-size:0.85em;">' +
-      '<span class="spinner spinner-dark"></span> Loading — takes 10–20 seconds...</div>';
+      '<div style="padding:20px;color:var(--muted);font-size:0.85em;" id="fetch-progress">' +
+      '<span class="spinner spinner-dark"></span> Loading batch 1...</div>';
 
     try {
       const linksRes = await fetch(WORKER + '/links');
@@ -1027,16 +1027,31 @@
       document.getElementById('header-count').textContent = currentLinks.length + ' links live';
       const existingUrls = currentLinks.map(l => l.url);
 
-      const res = await fetch(WORKER + '/admin/fetch-rss', {
-        method: 'POST',
-        headers: authHeader,
-        body: JSON.stringify({ existingUrls })
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      // Fetch all batches sequentially
+      let combinedStories = [];
+      let batchIndex = 0;
+      let totalBatches = 1;
+
+      do {
+        const progressEl = document.getElementById('fetch-progress');
+        if (progressEl) progressEl.innerHTML =
+          '<span class="spinner spinner-dark"></span> Loading batch ' + (batchIndex + 1) + ' of ' + totalBatches + '...';
+
+        const res = await fetch(WORKER + '/admin/fetch-rss', {
+          method: 'POST',
+          headers: authHeader,
+          body: JSON.stringify({ existingUrls, batchIndex })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        combinedStories = combinedStories.concat(data.stories);
+        totalBatches = data.totalBatches;
+        batchIndex++;
+      } while (batchIndex < totalBatches);
 
       // Sort by pubDate — most recent first
-      allStories = data.stories.sort((a, b) => {
+      allStories = combinedStories.sort((a, b) => {
         const da = a.pubDate ? new Date(a.pubDate) : new Date(0);
         const db = b.pubDate ? new Date(b.pubDate) : new Date(0);
         return db - da;
@@ -1044,7 +1059,7 @@
 
       buildSourceFilter();
       filterStories();
-      status('Loaded ' + allStories.length + ' stories', 'ok');
+      status('Loaded ' + allStories.length + ' stories from all sources', 'ok');
     } catch (e) {
       status('Failed: ' + e.message, 'error');
       document.getElementById('story-list').innerHTML =
@@ -1717,24 +1732,39 @@
 
   async function runDiagnostics() {
     const btn = document.getElementById('diag-run-btn');
-    const results = document.getElementById('diag-results');
+    const resultsEl = document.getElementById('diag-results');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Testing all feeds...';
-    results.innerHTML = '<span style="color:var(--muted);">Testing ' + '~120' + ' feeds — this takes about 10 seconds...</span>';
+    btn.innerHTML = '<span class="spinner"></span> Testing...';
+    resultsEl.innerHTML = '<span style="color:var(--muted);">Testing all feeds in batches...</span>';
 
     try {
-      const res = await fetch(WORKER + '/admin/feed-diagnostics', { headers: authHeader });
-      const data = await res.json();
-      const ok = data.filter(f => f.ok);
-      const fail = data.filter(f => !f.ok);
+      let allResults = [];
+      let batchIndex = 0;
+      let totalBatches = 1;
 
-      results.innerHTML =
+      do {
+        resultsEl.innerHTML = '<span style="color:var(--muted);">Testing batch ' + (batchIndex + 1) + ' of ' + totalBatches + '...</span>';
+        const res = await fetch(WORKER + '/admin/feed-diagnostics', {
+          method: 'POST',
+          headers: authHeader,
+          body: JSON.stringify({ batchIndex })
+        });
+        const data = await res.json();
+        allResults = allResults.concat(data.results);
+        totalBatches = data.totalBatches;
+        batchIndex++;
+      } while (batchIndex < totalBatches);
+
+      const ok = allResults.filter(f => f.ok);
+      const fail = allResults.filter(f => !f.ok);
+
+      resultsEl.innerHTML =
         '<div style="margin-bottom:6px;font-weight:bold;color:var(--success);">✅ Working (' + ok.length + ')</div>' +
         ok.map(f => `<div style="color:var(--success);padding:1px 0;">• ${esc(f.name)} <span style="color:var(--muted)">(${f.ms}ms)</span></div>`).join('') +
         '<div style="margin:8px 0 4px;font-weight:bold;color:var(--danger);">❌ Failed (' + fail.length + ')</div>' +
         fail.map(f => `<div style="color:var(--danger);padding:1px 0;">• ${esc(f.name)}: <span style="color:var(--muted)">${esc(f.reason || 'unknown')}</span></div>`).join('');
     } catch (e) {
-      results.innerHTML = '<span style="color:var(--danger);">Diagnostics failed: ' + esc(e.message) + '</span>';
+      resultsEl.innerHTML = '<span style="color:var(--danger);">Diagnostics failed: ' + esc(e.message) + '</span>';
     }
 
     btn.disabled = false;
