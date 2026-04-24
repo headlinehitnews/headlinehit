@@ -1073,13 +1073,17 @@
     document.getElementById('preview-summary-error').style.display = 'none';
     document.getElementById('preview-summary-loading').style.display = '';
 
-    // Fetch summary
+    // Fetch summary with a 25s client-side timeout
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
       const res = await fetch(WORKER + '/admin/summarize', {
         method: 'POST',
         headers: authHeader,
-        body: JSON.stringify({ url: story.url, headline: story.headline || '' })
+        body: JSON.stringify({ url: story.url, headline: story.headline || story.source || '' }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       const data = await res.json();
       document.getElementById('preview-summary-loading').style.display = 'none';
       if (data.summary) {
@@ -1089,12 +1093,15 @@
           document.getElementById('preview-summary-error').style.display = '';
         }
       } else {
-        document.getElementById('preview-summary-error').textContent = 'Could not summarize this article. Try opening it directly.';
+        document.getElementById('preview-summary-error').textContent = data.error || 'Could not summarize this article. Try opening it directly.';
         document.getElementById('preview-summary-error').style.display = '';
       }
     } catch (e) {
       document.getElementById('preview-summary-loading').style.display = 'none';
-      document.getElementById('preview-summary-error').textContent = 'Summary failed — try opening the article directly.';
+      const msg = e.name === 'AbortError'
+        ? 'Timed out — this site may be blocking requests. Try opening the article directly.'
+        : 'Summary failed — try opening the article directly.';
+      document.getElementById('preview-summary-error').textContent = msg;
       document.getElementById('preview-summary-error').style.display = '';
     }
   }
