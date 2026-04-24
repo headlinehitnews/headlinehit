@@ -540,6 +540,7 @@
 <header>
   <h1>Headline Hit <span style="color:#555;font-size:0.8em;letter-spacing:0"> — Admin</span></h1>
   <span id="header-count">Loading...</span>
+  <span id="header-daily" style="font-size:0.75em;color:#aaa;margin-left:16px;"></span>
 </header>
 
 <div class="tabs">
@@ -865,6 +866,14 @@
   }
 
   // ── Load current links ────────────────────────────────────────────
+  async function loadDailyCount() {
+    try {
+      const res = await fetch(WORKER + '/daily-count', { headers: authHeader });
+      const data = await res.json();
+      document.getElementById('header-daily').textContent = 'Today: ' + data.count + ' post' + (data.count === 1 ? '' : 's');
+    } catch (e) {}
+  }
+
   async function loadCurrentLinks() {
     try {
       const res = await fetch(WORKER + '/links');
@@ -1569,16 +1578,19 @@
 
       data.links = links;
       data.lastUpdated = new Date().toISOString();
+      if (editIndex === null) data.incrementCounter = true;
 
       await fetch(WORKER + '/links', {
         method: 'POST', headers: authHeader, body: JSON.stringify(data)
       });
+      delete data.incrementCounter;
 
       currentLinks = links;
       document.getElementById('header-count').textContent = currentLinks.length + ' links live';
       closeModal();
       status(editIndex !== null ? 'Link updated!' : 'Link published!', 'ok');
       renderCurrentLinks();
+      loadDailyCount();
 
       // If this came from approving a submission, dismiss it now
       if (window._pendingSubmissionId) {
@@ -1776,6 +1788,7 @@
   // ── Init ──────────────────────────────────────────────────────────
   loadCurrentLinks();
   loadSubmissions();
+  loadDailyCount();
 </script>
 
 
