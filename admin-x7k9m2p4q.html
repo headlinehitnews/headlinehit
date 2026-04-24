@@ -774,6 +774,9 @@
   let modalState = {};
   let editIndex = null;
   let activeStory = null;
+  const TOP_SLOTS = 11;
+  const OTHER_SLOTS = 10;
+  let pendingOrder = { top: null, other: null };
 
   // ── Status bar ────────────────────────────────────────────────────
   let statusTimer;
@@ -808,10 +811,6 @@
   }
 
   // ── Load current links ────────────────────────────────────────────
-  const TOP_SLOTS = 11;
-  const OTHER_SLOTS = 10;
-  let pendingOrder = { top: null, other: null };
-
   async function loadCurrentLinks() {
     try {
       const res = await fetch(WORKER + '/links');
