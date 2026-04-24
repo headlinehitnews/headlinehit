@@ -1592,6 +1592,15 @@
       renderCurrentLinks();
       loadDailyCount();
 
+      // Offer Bluesky share for new Top Stories
+      if (editIndex === null && modalState.position === 'top') {
+        setTimeout(() => {
+          if (confirm('Share this story to Bluesky?')) {
+            openBluesky({ headline: modalState.headline, url: modalState.url });
+          }
+        }, 300);
+      }
+
       // If this came from approving a submission, dismiss it now
       if (window._pendingSubmissionId) {
         await dismissSubmission(window._pendingSubmissionId);
@@ -1785,12 +1794,106 @@
     btn.textContent = 'Run Feed Test';
   }
 
+  // ── Bluesky sharing ──────────────────────────────────────────────
+  let bskyStory = null;
+
+  function openBluesky(story) {
+    bskyStory = story;
+    const defaultText = story.headline + '\n\n' + story.url;
+    document.getElementById('bsky-text').value = defaultText;
+    document.getElementById('bsky-tags').value = '';
+    document.getElementById('bsky-error').style.display = 'none';
+    document.getElementById('bsky-send-btn').disabled = false;
+    document.getElementById('bsky-send-btn').textContent = '🦋 Post to Bluesky';
+    updateBskyPreview();
+    document.getElementById('bluesky-overlay').classList.add('open');
+  }
+
+  function closeBluesky() {
+    document.getElementById('bluesky-overlay').classList.remove('open');
+    bskyStory = null;
+  }
+
+  function updateBskyCount() {
+    const text = buildBskyText();
+    document.getElementById('bsky-count').textContent = text.length + ' / 300';
+    document.getElementById('bsky-count').style.color = text.length > 300 ? 'var(--danger)' : 'var(--muted)';
+    updateBskyPreview();
+  }
+
+  function buildBskyText() {
+    const base = document.getElementById('bsky-text').value;
+    const tags = document.getElementById('bsky-tags').value.trim();
+    const hashTags = tags ? '\n\n' + tags.split(/\s+/).filter(Boolean).map(t => '#' + t.replace(/^#/, '')).join(' ') : '';
+    return base + hashTags;
+  }
+
+  function updateBskyPreview() {
+    const text = buildBskyText();
+    document.getElementById('bsky-preview').textContent = text;
+    document.getElementById('bsky-count').textContent = text.length + ' / 300';
+    document.getElementById('bsky-count').style.color = text.length > 300 ? 'var(--danger)' : 'var(--muted)';
+  }
+
+  async function sendBluesky() {
+    const text = buildBskyText();
+    if (text.length > 300) {
+      document.getElementById('bsky-error').textContent = 'Post is too long — max 300 characters.';
+      document.getElementById('bsky-error').style.display = '';
+      return;
+    }
+    const btn = document.getElementById('bsky-send-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Posting...';
+    document.getElementById('bsky-error').style.display = 'none';
+
+    try {
+      const res = await fetch(WORKER + '/admin/bluesky-post', {
+        method: 'POST',
+        headers: authHeader,
+        body: JSON.stringify({ text })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      closeBluesky();
+      status('Posted to Bluesky!', 'ok');
+    } catch (e) {
+      document.getElementById('bsky-error').textContent = 'Failed: ' + e.message;
+      document.getElementById('bsky-error').style.display = '';
+      btn.disabled = false;
+      btn.textContent = '🦋 Post to Bluesky';
+    }
+  }
+
   // ── Init ──────────────────────────────────────────────────────────
   loadCurrentLinks();
   loadSubmissions();
   loadDailyCount();
 </script>
 
+
+  <!-- BLUESKY SHARE MODAL -->
+  <div class="modal-overlay" id="bluesky-overlay" style="z-index:400;">
+    <div class="modal" style="max-width:480px;">
+      <button class="modal-close" onclick="closeBluesky()">×</button>
+      <div class="modal-title" style="color:#0085ff;">🦋 Share to Bluesky</div>
+      <div class="field">
+        <label>Post text (300 char max)</label>
+        <textarea id="bsky-text" rows="4" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:3px;font-family:Arial,sans-serif;font-size:0.9em;resize:vertical;" oninput="updateBskyCount()"></textarea>
+        <div id="bsky-count" style="font-size:0.75em;color:var(--muted);text-align:right;margin-top:3px;">0 / 300</div>
+      </div>
+      <div class="field">
+        <label>Hashtags <span style="color:var(--muted);font-weight:normal;">(space separated, no #)</span></label>
+        <input type="text" id="bsky-tags" placeholder="news conservative politics" oninput="updateBskyPreview()">
+      </div>
+      <div id="bsky-preview" style="background:#f0f7ff;border:1px solid #b3d4ff;border-radius:4px;padding:10px;font-size:0.85em;color:#111;margin-bottom:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word;"></div>
+      <div class="row">
+        <button class="btn btn-outline btn-sm" onclick="closeBluesky()">Cancel</button>
+        <button class="btn btn-sm" id="bsky-send-btn" onclick="sendBluesky()" style="background:#0085ff;color:#fff;">🦋 Post to Bluesky</button>
+      </div>
+      <p id="bsky-error" style="color:var(--danger);font-size:0.82em;margin-top:8px;display:none;"></p>
+    </div>
+  </div>
 
 </body>
 </html>
