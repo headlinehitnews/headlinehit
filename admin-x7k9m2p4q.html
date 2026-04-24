@@ -580,25 +580,39 @@
         <div>Click any headline for an AI summary</div>
       </div>
 
-      <div id="preview-card" style="display:none;flex-direction:column;height:100%;overflow-y:auto;">
-        <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <div id="preview-card" style="display:none;flex-direction:column;height:100%;overflow-y:auto;background:#fff;">
+
+        <!-- Header bar -->
+        <div style="padding:12px 18px;border-bottom:2px solid var(--red);display:flex;align-items:center;gap:10px;flex-shrink:0;background:#fff;">
           <div style="flex:1;min-width:0;">
-            <div id="preview-card-source" style="font-size:0.7em;color:var(--red);text-transform:uppercase;letter-spacing:0.5px;font-weight:bold;margin-bottom:3px;"></div>
-            <div id="preview-card-time" style="font-size:0.72em;color:var(--muted);"></div>
+            <div id="preview-card-source" style="font-size:0.72em;color:var(--red);text-transform:uppercase;letter-spacing:1px;font-weight:bold;"></div>
+            <div id="preview-card-time" style="font-size:0.7em;color:var(--muted);margin-top:1px;"></div>
           </div>
           <a id="preview-open-btn" href="#" target="_blank" class="btn btn-outline btn-sm" style="display:none;flex-shrink:0;">↗ Open</a>
-          <button class="btn btn-red btn-sm" id="preview-add-btn" style="display:none;flex-shrink:0;" onclick="addPreviewStory()">+ Add</button>
+          <button class="btn btn-red btn-sm" id="preview-add-btn" style="display:none;flex-shrink:0;" onclick="addPreviewStory()">+ Add to Site</button>
         </div>
-        <div style="padding:16px 20px;flex:1;">
-          <div id="preview-card-headline" style="font-size:1.05em;font-weight:bold;color:var(--navy);line-height:1.4;margin-bottom:14px;"></div>
-          <div id="preview-summary-wrap">
-            <div id="preview-summary-loading" style="display:none;color:var(--muted);font-size:0.85em;">
-              <span class="spinner spinner-dark"></span> Summarizing article...
-            </div>
-            <div id="preview-summary" style="font-size:0.9em;line-height:1.7;color:var(--text);"></div>
-            <div id="preview-summary-error" style="display:none;font-size:0.85em;color:var(--muted);font-style:italic;"></div>
+
+        <!-- Content -->
+        <div style="padding:20px 24px;flex:1;">
+          <div id="preview-card-headline" style="font-size:1.15em;font-weight:bold;color:var(--navy);line-height:1.5;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:14px;"></div>
+
+          <div id="preview-summary-loading" style="display:none;color:var(--muted);font-size:0.85em;padding:10px 0;">
+            <span class="spinner spinner-dark"></span>&nbsp; Reading article...
           </div>
+
+          <div id="preview-bullets" style="display:none;margin-bottom:16px;">
+            <div style="font-size:0.68em;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;">Key Facts</div>
+            <ul id="preview-bullets-list" style="list-style:none;padding:0;margin:0;"></ul>
+          </div>
+
+          <div id="preview-summary-wrap" style="display:none;">
+            <div style="font-size:0.68em;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;">Summary</div>
+            <div id="preview-summary" style="font-size:0.9em;line-height:1.7;color:var(--text);"></div>
+          </div>
+
+          <div id="preview-summary-error" style="display:none;font-size:0.82em;color:var(--muted);font-style:italic;margin-top:8px;padding:10px;background:#f9f9f9;border-radius:3px;border-left:3px solid var(--border);"></div>
         </div>
+
       </div>
     </div>
 
@@ -1083,6 +1097,9 @@
 
     // Reset summary area
     document.getElementById('preview-summary').textContent = '';
+    document.getElementById('preview-summary-wrap').style.display = 'none';
+    document.getElementById('preview-bullets').style.display = 'none';
+    document.getElementById('preview-bullets-list').innerHTML = '';
     document.getElementById('preview-summary-error').style.display = 'none';
     document.getElementById('preview-summary-loading').style.display = '';
 
@@ -1099,8 +1116,23 @@
       clearTimeout(timeoutId);
       const data = await res.json();
       document.getElementById('preview-summary-loading').style.display = 'none';
-      if (data.summary) {
-        document.getElementById('preview-summary').textContent = data.summary;
+      if (data.summary || (data.bullets && data.bullets.length > 0)) {
+        // Render bullets
+        if (data.bullets && data.bullets.length > 0) {
+          const list = document.getElementById('preview-bullets-list');
+          list.innerHTML = data.bullets.map(b =>
+            `<li style="display:flex;gap:8px;margin-bottom:6px;font-size:0.88em;line-height:1.4;color:var(--text);">
+              <span style="color:var(--red);flex-shrink:0;font-weight:bold;">▸</span>
+              <span>${esc(b)}</span>
+            </li>`
+          ).join('');
+          document.getElementById('preview-bullets').style.display = '';
+        }
+        // Render summary
+        if (data.summary) {
+          document.getElementById('preview-summary').textContent = data.summary;
+          document.getElementById('preview-summary-wrap').style.display = '';
+        }
         if (data.partial) {
           document.getElementById('preview-summary-error').textContent = 'Note: This site blocked automated reading. Summary is based on the headline only.';
           document.getElementById('preview-summary-error').style.display = '';
