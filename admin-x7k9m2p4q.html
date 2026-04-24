@@ -575,21 +575,30 @@
     </div>
 
     <div class="browse-right">
-      <div class="preview-toolbar">
-        <span id="preview-title">Select a story to preview</span>
-        <button class="btn btn-red btn-sm" id="preview-add-btn" style="display:none" onclick="addPreviewStory()">+ Add This Story</button>
-        <a id="preview-open-btn" href="#" target="_blank" class="btn btn-outline btn-sm" style="display:none">↗ Open</a>
-      </div>
-
       <div id="preview-empty">
         <div class="empty-icon">📰</div>
-        <div>Click any headline to preview it here</div>
+        <div>Click any headline for an AI summary</div>
       </div>
 
-      <div id="preview-card">
-        <div id="preview-card-source"></div>
-        <div id="preview-card-headline"></div>
-        <div id="preview-card-time"></div>
+      <div id="preview-card" style="display:none;flex-direction:column;height:100%;overflow-y:auto;">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;">
+          <div style="flex:1;min-width:0;">
+            <div id="preview-card-source" style="font-size:0.7em;color:var(--red);text-transform:uppercase;letter-spacing:0.5px;font-weight:bold;margin-bottom:3px;"></div>
+            <div id="preview-card-time" style="font-size:0.72em;color:var(--muted);"></div>
+          </div>
+          <a id="preview-open-btn" href="#" target="_blank" class="btn btn-outline btn-sm" style="display:none;flex-shrink:0;">↗ Open</a>
+          <button class="btn btn-red btn-sm" id="preview-add-btn" style="display:none;flex-shrink:0;" onclick="addPreviewStory()">+ Add</button>
+        </div>
+        <div style="padding:16px 20px;flex:1;">
+          <div id="preview-card-headline" style="font-size:1.05em;font-weight:bold;color:var(--navy);line-height:1.4;margin-bottom:14px;"></div>
+          <div id="preview-summary-wrap">
+            <div id="preview-summary-loading" style="display:none;color:var(--muted);font-size:0.85em;">
+              <span class="spinner spinner-dark"></span> Summarizing article...
+            </div>
+            <div id="preview-summary" style="font-size:0.9em;line-height:1.7;color:var(--text);"></div>
+            <div id="preview-summary-error" style="display:none;font-size:0.85em;color:var(--muted);font-style:italic;"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1038,29 +1047,52 @@
   }
 
   // ── Preview pane ──────────────────────────────────────────────────
-  function previewStory(story, el) {
+  async function previewStory(story, el) {
     document.querySelectorAll('.story-item').forEach(i => i.classList.remove('active'));
     el.classList.add('active');
     activeStory = story;
 
-    // Update toolbar
-    document.getElementById('preview-title').textContent = story.headline;
-    document.getElementById('preview-title').style.color = '';
+    // Show card, hide empty
+    document.getElementById('preview-empty').style.display = 'none';
+    const card = document.getElementById('preview-card');
+    card.style.display = 'flex';
+
+    // Populate header
+    document.getElementById('preview-card-source').textContent = story.source || getDomain(story.url);
+    document.getElementById('preview-card-headline').textContent = story.headline;
+    document.getElementById('preview-card-time').textContent = timeAgo(story.pubDate);
+
+    // Buttons
     document.getElementById('preview-add-btn').style.display = '';
     const openBtn = document.getElementById('preview-open-btn');
     openBtn.href = story.url;
     openBtn.style.display = '';
 
-    // Show card, hide empty state
-    document.getElementById('preview-empty').style.display = 'none';
-    const card = document.getElementById('preview-card');
-    card.style.display = 'flex';
-    document.getElementById('preview-card-source').textContent = story.source || getDomain(story.url);
-    document.getElementById('preview-card-headline').textContent = story.headline;
-    document.getElementById('preview-card-time').textContent = timeAgo(story.pubDate);
+    // Reset summary area
+    document.getElementById('preview-summary').textContent = '';
+    document.getElementById('preview-summary-error').style.display = 'none';
+    document.getElementById('preview-summary-loading').style.display = '';
 
-    // Open article in new tab immediately
-    window.open(story.url, '_blank');
+    // Fetch summary
+    try {
+      const res = await fetch(WORKER + '/admin/summarize', {
+        method: 'POST',
+        headers: authHeader,
+        body: JSON.stringify({ url: story.url })
+      });
+      const data = await res.json();
+      document.getElementById('preview-summary-loading').style.display = 'none';
+      if (data.summary) {
+        document.getElementById('preview-summary').textContent = data.summary;
+      } else {
+        document.getElementById('preview-summary-error').textContent = 'Could not summarize this article.';
+        document.getElementById('preview-summary-error').style.display = '';
+      }
+    } catch (e) {
+      document.getElementById('preview-summary-loading').style.display = 'none';
+      document.getElementById('preview-summary-error').textContent = 'Summary failed — try opening the article directly.';
+      document.getElementById('preview-summary-error').style.display = '';
+    }
   }
 
   function addPreviewStory() {
