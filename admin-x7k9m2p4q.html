@@ -617,15 +617,40 @@
   <div class="tab-panel" id="tab-manage">
     <div class="tab-scroll">
       <div class="tab-scroll-inner">
-        <div class="card">
-          <div class="card-title">Current links on site</div>
-          <div class="row" style="margin-bottom:12px;">
-            <button class="btn btn-red btn-sm" onclick="loadCurrentLinks()">↺ Refresh</button>
-          </div>
-          <div id="current-links-list">
-            <p class="text-muted">Click Refresh to load current links.</p>
-          </div>
+
+        <div class="row" style="margin-bottom:14px;">
+          <button class="btn btn-red btn-sm" onclick="loadCurrentLinks()">↺ Refresh</button>
         </div>
+
+        <div class="card">
+          <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+            <span>★ Top Stories</span>
+            <div id="top-save-row" style="display:none;gap:8px;" class="row">
+              <span style="font-size:0.78em;color:var(--muted);">Unsaved changes</span>
+              <button class="btn btn-green btn-sm" onclick="saveOrder('top')">✓ Save Order</button>
+              <button class="btn btn-outline btn-sm" onclick="cancelOrder('top')">✕ Cancel</button>
+            </div>
+          </div>
+          <div id="top-links-list"><p class="text-muted">Click Refresh to load.</p></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+            <span>→ Around the Web</span>
+            <div id="other-save-row" style="display:none;gap:8px;" class="row">
+              <span style="font-size:0.78em;color:var(--muted);">Unsaved changes</span>
+              <button class="btn btn-green btn-sm" onclick="saveOrder('other')">✓ Save Order</button>
+              <button class="btn btn-outline btn-sm" onclick="cancelOrder('other')">✕ Cancel</button>
+            </div>
+          </div>
+          <div id="other-links-list"><p class="text-muted">Click Refresh to load.</p></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Previous Stories (overflow)</div>
+          <div id="overflow-links-list"><p class="text-muted">Click Refresh to load.</p></div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -794,25 +819,44 @@
   }
 
   // ── Load current links ────────────────────────────────────────────
+  const TOP_SLOTS = 11;
+  const OTHER_SLOTS = 10;
+  let pendingOrder = { top: null, other: null };
+
   async function loadCurrentLinks() {
     try {
       const res = await fetch(WORKER + '/links');
       const data = await res.json();
       currentLinks = data.links || [];
       document.getElementById('header-count').textContent = currentLinks.length + ' links live';
-      renderCurrentLinks();
+      pendingOrder = { top: null, other: null };
+      renderManage();
     } catch (e) {
       status('Failed to load links: ' + e.message, 'error');
     }
   }
 
-  function renderCurrentLinks() {
-    const el = document.getElementById('current-links-list');
-    if (currentLinks.length === 0) {
-      el.innerHTML = '<p class="text-muted">No links on site yet.</p>';
-      return;
-    }
-    el.innerHTML = currentLinks.map((link, i) => `
+  function getGroups() {
+    const topLinks = currentLinks.filter(l => !l.position || l.position === 'top');
+    const otherLinks = currentLinks.filter(l => l.position === 'other');
+    const topActive = pendingOrder.top || topLinks.slice(0, TOP_SLOTS);
+    const otherActive = pendingOrder.other || otherLinks.slice(0, OTHER_SLOTS);
+    const overflowLinks = currentLinks.filter(l => {
+      if (!l.position || l.position === 'top') return topLinks.indexOf(l) >= TOP_SLOTS;
+      return otherLinks.indexOf(l) >= OTHER_SLOTS;
+    });
+    return { topLinks, otherLinks, topActive, otherActive, overflowLinks };
+  }
+
+  function renderManage() {
+    const { topActive, otherActive, overflowLinks } = getGroups();
+    renderGroup('top', topActive);
+    renderGroup('other', otherActive);
+    renderOverflowList(overflowLinks);
+  }
+
+  function linkRowHTML(link, i, actions) {
+    return `
       <div class="link-row">
         <div class="link-row-index">${i + 1}</div>
         ${link.image
@@ -826,15 +870,103 @@
             ${link.addedAt ? '&nbsp;·&nbsp; ' + new Date(link.addedAt).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : ''}
           </div>
         </div>
-        <div class="link-row-actions">
-          <button class="btn btn-outline btn-sm" onclick="moveLink(${i}, -1)" ${i === 0 ? 'disabled' : ''} title="Move up">↑</button>
-          <button class="btn btn-outline btn-sm" onclick="moveLink(${i}, 1)" ${i === currentLinks.length - 1 ? 'disabled' : ''} title="Move down">↓</button>
-          <button class="btn btn-outline btn-sm" onclick="startEdit(${i})">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteLink(${i})">✕</button>
-        </div>
-      </div>
-    `).join('');
+        <div class="link-row-actions">${actions}</div>
+      </div>`;
   }
+
+  function renderGroup(group, links) {
+    const listEl = document.getElementById(group + '-links-list');
+    const saveRow = document.getElementById(group + '-save-row');
+    saveRow.style.display = pendingOrder[group] !== null ? '' : 'none';
+
+    if (links.length === 0) {
+      listEl.innerHTML = '<p class="text-muted">No stories here yet.</p>';
+      return;
+    }
+
+    listEl.innerHTML = links.map((link, i) => {
+      const realIdx = currentLinks.indexOf(link);
+      const actions = `
+        <button class="btn btn-outline btn-sm" onclick="moveLinkInGroup('${group}', ${i}, -1)" ${i === 0 ? 'disabled' : ''}>↑</button>
+        <button class="btn btn-outline btn-sm" onclick="moveLinkInGroup('${group}', ${i}, 1)" ${i === links.length - 1 ? 'disabled' : ''}>↓</button>
+        <button class="btn btn-outline btn-sm" onclick="startEdit(${realIdx})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteLink(${realIdx})">✕</button>`;
+      return linkRowHTML(link, i, actions);
+    }).join('');
+  }
+
+  function renderOverflowList(links) {
+    const el = document.getElementById('overflow-links-list');
+    if (links.length === 0) {
+      el.innerHTML = '<p class="text-muted">No overflow stories yet.</p>';
+      return;
+    }
+    el.innerHTML = links.map((link, i) => {
+      const realIdx = currentLinks.indexOf(link);
+      const actions = `
+        <button class="btn btn-outline btn-sm" onclick="startEdit(${realIdx})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteLink(${realIdx})">✕</button>`;
+      return linkRowHTML(link, i, actions);
+    }).join('');
+  }
+
+  function moveLinkInGroup(group, index, direction) {
+    const { topLinks, otherLinks } = getGroups();
+    const source = group === 'top'
+      ? (pendingOrder.top || topLinks.slice(0, TOP_SLOTS))
+      : (pendingOrder.other || otherLinks.slice(0, OTHER_SLOTS));
+    const working = [...source];
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= working.length) return;
+    const temp = working[index];
+    working[index] = working[newIndex];
+    working[newIndex] = temp;
+    pendingOrder[group] = working;
+    renderGroup(group, working);
+  }
+
+  async function saveOrder(group) {
+    if (!pendingOrder[group]) return;
+    status('Saving order...', '', true);
+    try {
+      const res = await fetch(WORKER + '/links');
+      const data = await res.json();
+      const links = data.links || [];
+      const isTop = group === 'top';
+      const slots = isTop ? TOP_SLOTS : OTHER_SLOTS;
+      const newOrder = pendingOrder[group];
+
+      // Build replacement: swap active-slot items in place
+      let groupIdx = 0;
+      const newLinks = links.map(l => {
+        const inGroup = isTop ? (!l.position || l.position === 'top') : l.position === 'other';
+        if (!inGroup) return l;
+        const groupLinks = links.filter(x => isTop ? (!x.position || x.position === 'top') : x.position === 'other');
+        const posInGroup = groupLinks.indexOf(l);
+        if (posInGroup < slots) return newOrder[groupIdx++];
+        return l;
+      });
+
+      data.links = newLinks;
+      data.lastUpdated = new Date().toISOString();
+      await fetch(WORKER + '/links', { method: 'POST', headers: authHeader, body: JSON.stringify(data) });
+      currentLinks = newLinks;
+      pendingOrder[group] = null;
+      renderManage();
+      status('Order saved!', 'ok');
+    } catch (e) {
+      status('Save failed: ' + e.message, 'error');
+    }
+  }
+
+  function cancelOrder(group) {
+    pendingOrder[group] = null;
+    renderManage();
+    status('Changes discarded.', 'ok');
+  }
+
+  // Keep renderCurrentLinks as alias for backwards compat (used after edit/delete)
+  function renderCurrentLinks() { renderManage(); }
 
   // ── Fetch RSS stories ─────────────────────────────────────────────
   async function loadStories() {
@@ -1263,29 +1395,6 @@
     btn.textContent = '✓ Publish';
   }
 
-  // ── Reorder ───────────────────────────────────────────────────────
-  async function moveLink(index, direction) {
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= currentLinks.length) return;
-    status('Saving...', '', true);
-    try {
-      const linksRes = await fetch(WORKER + '/links');
-      const data = await linksRes.json();
-      const links = data.links || [];
-      const temp = links[index];
-      links[index] = links[newIndex];
-      links[newIndex] = temp;
-      data.links = links;
-      data.lastUpdated = new Date().toISOString();
-      await fetch(WORKER + '/links', { method: 'POST', headers: authHeader, body: JSON.stringify(data) });
-      currentLinks = links;
-      renderCurrentLinks();
-      status('Order updated.', 'ok');
-    } catch (e) {
-      status('Failed to reorder: ' + e.message, 'error');
-    }
-  }
-
   // ── Delete ────────────────────────────────────────────────────────
   async function deleteLink(index) {
     const link = currentLinks[index];
@@ -1299,7 +1408,8 @@
       await fetch(WORKER + '/links', { method: 'POST', headers: authHeader, body: JSON.stringify(data) });
       currentLinks = data.links;
       document.getElementById('header-count').textContent = currentLinks.length + ' links live';
-      renderCurrentLinks();
+      pendingOrder = { top: null, other: null };
+      renderManage();
       status('Deleted.', 'ok');
     } catch (e) {
       status('Delete failed: ' + e.message, 'error');
