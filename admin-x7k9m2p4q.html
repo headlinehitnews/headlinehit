@@ -685,83 +685,71 @@
 
 <div id="status-bar">Ready</div>
 
-<!-- MODAL -->
+<!-- ADD / EDIT PANEL -->
 <div class="modal-overlay" id="modal-overlay">
-  <div class="modal">
+  <div class="modal" style="max-width:700px;">
     <button class="modal-close" onclick="closeModal()">×</button>
     <div class="modal-title" id="modal-title">Add Story</div>
 
-    <div id="step-images">
-      <div class="section-label">Step 1 — Choose Image</div>
-      <div id="image-loading" class="text-muted">Fetching preview images...</div>
-      <div class="image-options" id="image-options"></div>
-      <div class="field mt8">
-        <label>Or paste a direct image URL</label>
-        <input type="url" id="custom-image-url" placeholder="https://..." oninput="onCustomImageUrl()">
-        <div id="custom-image-preview" style="display:none;margin-top:8px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+      <!-- Left column -->
+      <div>
+        <div class="section-label">Headline</div>
+        <div id="headline-loading" class="text-muted" style="font-size:0.8em;margin-bottom:6px;"></div>
+        <div id="headline-options" style="margin-bottom:8px;"></div>
+        <input type="text" id="custom-headline" placeholder="Write or edit headline..." style="margin-bottom:14px;">
+
+        <div class="section-label">Image</div>
+        <div id="image-loading" class="text-muted" style="font-size:0.8em;margin-bottom:6px;"></div>
+        <div class="image-options" id="image-options"></div>
+        <input type="url" id="custom-image-url" placeholder="Or paste image URL..." oninput="onCustomImageUrl()" style="margin-bottom:4px;">
+        <div id="custom-image-preview" style="display:none;margin-bottom:6px;">
           <img id="custom-image-preview-img"
-            style="max-width:200px;max-height:120px;object-fit:cover;border-radius:3px;border:2px solid var(--border);"
+            style="max-width:160px;max-height:100px;object-fit:cover;border-radius:3px;border:2px solid var(--border);"
             alt="Preview">
-          <div id="custom-image-preview-error"
-            style="display:none;font-size:0.8em;color:var(--danger);margin-top:4px;">
+          <div id="custom-image-preview-error" style="display:none;font-size:0.8em;color:var(--danger);margin-top:4px;">
             &#9888; Image failed to load — check the URL
           </div>
         </div>
-      </div>
-      <div class="row mt8">
         <button class="btn btn-outline btn-sm" onclick="clearImage()">No image</button>
       </div>
-      <hr class="divider">
-      <button class="btn btn-red" onclick="goToHeadlines()">Next: Headlines →</button>
+
+      <!-- Right column -->
+      <div>
+        <div class="section-label">Placement</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+          <button class="pos-btn" onclick="selectPosition('top')"><strong>★</strong>Top Story</button>
+          <button class="pos-btn" onclick="selectPosition('other')"><strong>→</strong>Other Stories</button>
+        </div>
+
+        <div class="section-label">Category</div>
+        <div class="category-grid">
+          <button class="cat-btn" onclick="selectCategory(0)">🏦 US Politics</button>
+          <button class="cat-btn" onclick="selectCategory(1)">📺 News Media</button>
+          <button class="cat-btn" onclick="selectCategory(2)">🎭 Society & Culture</button>
+          <button class="cat-btn" onclick="selectCategory(3)">🏆 Sports News</button>
+          <button class="cat-btn" onclick="selectCategory(4)">💻 Tech News</button>
+          <button class="cat-btn" onclick="selectCategory(5)">🎬 Entertainment</button>
+          <button class="cat-btn" onclick="selectCategory(6)">🌍 World News</button>
+          <button class="cat-btn" onclick="selectCategory(7)">📈 Economy & Business</button>
+          <button class="cat-btn" onclick="selectCategory(8)">⚖️ Crime & Law</button>
+          <button class="cat-btn" onclick="selectCategory(9)">🧬 Health & Science</button>
+        </div>
+      </div>
+
     </div>
 
-    <div id="step-headlines" style="display:none;">
-      <div class="section-label">Step 2 — Choose Headline</div>
-      <div id="headline-loading" class="text-muted">Generating headline options...</div>
-      <div id="headline-options"></div>
-      <div class="field mt8">
-        <label>Click a headline above to edit it, or write your own</label>
-        <input type="text" id="custom-headline" placeholder="Your headline..." oninput="onCustomHeadline()">
-      </div>
-      <hr class="divider">
-      <div class="row">
-        <button class="btn btn-outline btn-sm" onclick="goToImages()">← Back</button>
-        <button class="btn btn-red" onclick="goToPosition()">Next: Placement →</button>
-      </div>
-    </div>
-
-    <div id="step-position" style="display:none;">
-      <div class="section-label">Step 3 — Placement</div>
-      <div class="position-grid" id="position-grid">
-        <button class="pos-btn" onclick="selectPosition('top')"><strong>★</strong>Top Story</button>
-        <button class="pos-btn" onclick="selectPosition('other')"><strong>→</strong>Other Stories</button>
-      </div>
-
-      <div class="section-label">Category</div>
-      <div class="category-grid">
-        <button class="cat-btn" onclick="selectCategory(0)">🏦 US Politics</button>
-        <button class="cat-btn" onclick="selectCategory(1)">📺 News Media</button>
-        <button class="cat-btn" onclick="selectCategory(2)">🎭 Society & Culture</button>
-        <button class="cat-btn" onclick="selectCategory(3)">🏆 Sports News</button>
-        <button class="cat-btn" onclick="selectCategory(4)">💻 Tech News</button>
-        <button class="cat-btn" onclick="selectCategory(5)">🎬 Entertainment</button>
-        <button class="cat-btn" onclick="selectCategory(6)">🌍 World News</button>
-        <button class="cat-btn" onclick="selectCategory(7)">📈 Economy & Business</button>
-        <button class="cat-btn" onclick="selectCategory(8)">⚖️ Crime & Law</button>
-        <button class="cat-btn" onclick="selectCategory(9)">🧬 Health & Science</button>
-      </div>
-
-      <hr class="divider">
-      <div class="row">
-        <button class="btn btn-outline btn-sm" onclick="goToHeadlines()">← Back</button>
-        <button class="btn btn-green" onclick="submitLink()" id="btn-submit">✓ Publish</button>
-      </div>
+    <hr class="divider" style="margin-top:20px;">
+    <div class="row">
+      <button class="btn btn-outline btn-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-green" onclick="submitLink()" id="btn-submit">✓ Publish</button>
     </div>
 
   </div>
 </div>
 
-<script src="config.js"></script>
+
 <script>
   const WORKER = 'https://news-worker.headlinehitnews.workers.dev';
   // SECRET is loaded from config.js
@@ -1565,71 +1553,6 @@
   loadCurrentLinks();
   loadSubmissions();
 </script>
-
-
-<!-- ADD / EDIT PANEL -->
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal" style="max-width:700px;">
-    <button class="modal-close" onclick="closeModal()">×</button>
-    <div class="modal-title" id="modal-title">Add Story</div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-
-      <!-- Left column -->
-      <div>
-        <div class="section-label">Headline</div>
-        <div id="headline-loading" class="text-muted" style="font-size:0.8em;margin-bottom:6px;"></div>
-        <div id="headline-options" style="margin-bottom:8px;"></div>
-        <input type="text" id="custom-headline" placeholder="Write or edit headline..." style="margin-bottom:14px;">
-
-        <div class="section-label">Image</div>
-        <div id="image-loading" class="text-muted" style="font-size:0.8em;margin-bottom:6px;"></div>
-        <div class="image-options" id="image-options"></div>
-        <input type="url" id="custom-image-url" placeholder="Or paste image URL..." oninput="onCustomImageUrl()" style="margin-bottom:4px;">
-        <div id="custom-image-preview" style="display:none;margin-bottom:6px;">
-          <img id="custom-image-preview-img"
-            style="max-width:160px;max-height:100px;object-fit:cover;border-radius:3px;border:2px solid var(--border);"
-            alt="Preview">
-          <div id="custom-image-preview-error" style="display:none;font-size:0.8em;color:var(--danger);margin-top:4px;">
-            &#9888; Image failed to load — check the URL
-          </div>
-        </div>
-        <button class="btn btn-outline btn-sm" onclick="clearImage()">No image</button>
-      </div>
-
-      <!-- Right column -->
-      <div>
-        <div class="section-label">Placement</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
-          <button class="pos-btn" onclick="selectPosition('top')"><strong>★</strong>Top Story</button>
-          <button class="pos-btn" onclick="selectPosition('other')"><strong>→</strong>Other Stories</button>
-        </div>
-
-        <div class="section-label">Category</div>
-        <div class="category-grid">
-          <button class="cat-btn" onclick="selectCategory(0)">🏦 US Politics</button>
-          <button class="cat-btn" onclick="selectCategory(1)">📺 News Media</button>
-          <button class="cat-btn" onclick="selectCategory(2)">🎭 Society & Culture</button>
-          <button class="cat-btn" onclick="selectCategory(3)">🏆 Sports News</button>
-          <button class="cat-btn" onclick="selectCategory(4)">💻 Tech News</button>
-          <button class="cat-btn" onclick="selectCategory(5)">🎬 Entertainment</button>
-          <button class="cat-btn" onclick="selectCategory(6)">🌍 World News</button>
-          <button class="cat-btn" onclick="selectCategory(7)">📈 Economy & Business</button>
-          <button class="cat-btn" onclick="selectCategory(8)">⚖️ Crime & Law</button>
-          <button class="cat-btn" onclick="selectCategory(9)">🧬 Health & Science</button>
-        </div>
-      </div>
-
-    </div>
-
-    <hr class="divider" style="margin-top:20px;">
-    <div class="row">
-      <button class="btn btn-outline btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-green" onclick="submitLink()" id="btn-submit">✓ Publish</button>
-    </div>
-
-  </div>
-</div>
 
 
 </body>
