@@ -1078,14 +1078,18 @@
       const res = await fetch(WORKER + '/admin/summarize', {
         method: 'POST',
         headers: authHeader,
-        body: JSON.stringify({ url: story.url })
+        body: JSON.stringify({ url: story.url, headline: story.headline || '' })
       });
       const data = await res.json();
       document.getElementById('preview-summary-loading').style.display = 'none';
       if (data.summary) {
         document.getElementById('preview-summary').textContent = data.summary;
+        if (data.partial) {
+          document.getElementById('preview-summary-error').textContent = 'Note: This site blocked automated reading. Summary is based on the headline only.';
+          document.getElementById('preview-summary-error').style.display = '';
+        }
       } else {
-        document.getElementById('preview-summary-error').textContent = 'Could not summarize this article.';
+        document.getElementById('preview-summary-error').textContent = 'Could not summarize this article. Try opening it directly.';
         document.getElementById('preview-summary-error').style.display = '';
       }
     } catch (e) {
