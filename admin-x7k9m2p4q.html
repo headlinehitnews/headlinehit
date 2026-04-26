@@ -596,6 +596,7 @@
             <div id="preview-card-source" style="font-size:0.72em;color:var(--red);text-transform:uppercase;letter-spacing:1px;font-weight:bold;"></div>
             <div id="preview-card-time" style="font-size:0.7em;color:var(--muted);margin-top:1px;"></div>
           </div>
+          <a id="preview-gnews-btn" href="#" target="_blank" class="btn btn-outline btn-sm" style="display:none;flex-shrink:0;font-size:0.75em;">🔍 Google News</a>
           <a id="preview-open-btn" href="#" target="_blank" class="btn btn-outline btn-sm" style="display:none;flex-shrink:0;">↗ Open</a>
           <button class="btn btn-red btn-sm" id="preview-add-btn" style="display:none;flex-shrink:0;" onclick="addPreviewStory()">+ Add to Site</button>
         </div>
@@ -721,16 +722,6 @@
   <div class="modal" style="max-width:700px;">
     <button class="modal-close" onclick="closeModal()">×</button>
     <div class="modal-title" id="modal-title">Add Story</div>
-
-    <!-- Source URL display + picker -->
-    <div id="source-bar" style="display:none;margin-bottom:14px;padding:10px 12px;background:#f8f8f8;border-radius:4px;border:1px solid var(--border);">
-      <div style="font-size:0.7em;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">Source</div>
-      <div id="source-url-display" style="font-size:0.88em;color:var(--navy);font-weight:bold;margin-bottom:6px;word-break:break-all;"></div>
-      <div id="source-picker" style="display:none;">
-        <div style="font-size:0.72em;color:var(--muted);margin-bottom:4px;">Switch to a different source:</div>
-        <div id="source-options" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
-      </div>
-    </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
 
@@ -1165,6 +1156,14 @@
     const openBtn = document.getElementById('preview-open-btn');
     openBtn.href = story.url;
     openBtn.style.display = '';
+    // Show Google News button for Google News stories
+    const gnewsBtn = document.getElementById('preview-gnews-btn');
+    if (story.url && story.url.includes('news.google.com')) {
+      gnewsBtn.href = story.url;
+      gnewsBtn.style.display = '';
+    } else {
+      gnewsBtn.style.display = 'none';
+    }
 
     // Reset summary area
     document.getElementById('preview-summary').textContent = '';
@@ -1238,22 +1237,15 @@
   // ── Open modal for add ────────────────────────────────────────────
   function startAddFromStory(story) {
     editIndex = null;
-    modalState = {
-      url: story.url,
-      originalHeadline: story.headline || '',
-      image: null,
-      headline: '',
-      position: null,
-      categoryIndex: null,
-    };
+    modalState = { url: story.url, image: null, headline: '', position: null, categoryIndex: null };
     document.getElementById('modal-title').textContent = 'Add Story';
+    document.getElementById('custom-headline').value = '';
     openModal();
-    showStep('images');
     fetchImages(story.url);
     fetchHeadlines(story.url, story.headline || '');
   }
 
-  // ── Open modal for edit ───────────────────────────────────────────
+    // ── Open modal for edit ───────────────────────────────────────────
   function startEdit(index) {
     const link = currentLinks[index];
     editIndex = index;
@@ -1305,8 +1297,6 @@
     document.getElementById('headline-options').innerHTML = '';
     document.getElementById('custom-image-url').value = '';
     document.getElementById('load-more-images-btn').style.display = 'none';
-    document.getElementById('source-bar').style.display = 'none';
-    document.getElementById('source-options').innerHTML = '';
     document.getElementById('load-more-images-btn').disabled = false;
     document.getElementById('load-more-images-btn').textContent = '↓ Load More Images';
     document.getElementById('custom-image-preview').style.display = 'none';
@@ -1321,57 +1311,14 @@
   }
 
   // ── Open modal for add ────────────────────────────────────────────
-  async function startAddFromStory(story) {
+  function startAddFromStory(story) {
     editIndex = null;
+    modalState = { url: story.url, image: null, headline: '', position: null, categoryIndex: null };
     document.getElementById('modal-title').textContent = 'Add Story';
     document.getElementById('custom-headline').value = '';
-    document.getElementById('source-bar').style.display = 'none';
-    document.getElementById('source-picker').style.display = 'none';
-    document.getElementById('source-options').innerHTML = '';
-
-    const googleLinks = story.googleArticleLinks || [];
-    let resolvedUrl = story.url;
-    let sources = [];
-
-    // If we have Google article links, resolve them to real URLs
-    if (googleLinks.length > 0) {
-      try {
-        status('Finding article sources...', '', true);
-        const res = await fetch(WORKER + '/admin/resolve-url', {
-          method: 'POST', headers: authHeader,
-          body: JSON.stringify({ googleArticleLinks: googleLinks, url: story.url })
-        });
-        const data = await res.json();
-        if (data.url && !data.url.includes('google.com')) resolvedUrl = data.url;
-        sources = data.sources || [];
-      } catch (e) {}
-      status('Ready');
-    }
-
-    modalState = { url: resolvedUrl, image: null, headline: '', position: null, categoryIndex: null };
-
-    // Show source bar
-    document.getElementById('source-bar').style.display = '';
-    const displayDomain = getDomain(resolvedUrl);
-    document.getElementById('source-url-display').textContent = displayDomain || resolvedUrl;
-
-    // Show source picker if multiple sources found
-    if (sources.length > 1) {
-      document.getElementById('source-picker').style.display = '';
-      const opts = document.getElementById('source-options');
-      sources.forEach((s, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-outline btn-sm' + (i === 0 ? ' selected' : '');
-        btn.style.cssText = i === 0 ? 'border-color:var(--red);background:#fff5f5;' : '';
-        btn.textContent = s.domain;
-        btn.onclick = () => switchSource(s.url, s.domain, btn);
-        opts.appendChild(btn);
-      });
-    }
-
     openModal();
-    fetchImages(resolvedUrl);
-    fetchHeadlines(resolvedUrl, story.headline || '');
+    fetchImages(story.url);
+    fetchHeadlines(story.url, story.headline || '');
   }
 
   function switchSource(url, domain, btn) {
@@ -1389,8 +1336,6 @@
     document.getElementById('image-options').innerHTML = '';
     document.getElementById('image-loading').textContent = 'Fetching images...';
     document.getElementById('load-more-images-btn').style.display = 'none';
-    document.getElementById('source-bar').style.display = 'none';
-    document.getElementById('source-options').innerHTML = '';
     fetchImages(url);
   }
 
@@ -1532,8 +1477,6 @@
     document.querySelectorAll('.image-option').forEach(o => o.classList.remove('selected'));
     document.getElementById('custom-image-url').value = '';
     document.getElementById('load-more-images-btn').style.display = 'none';
-    document.getElementById('source-bar').style.display = 'none';
-    document.getElementById('source-options').innerHTML = '';
     document.getElementById('load-more-images-btn').disabled = false;
     document.getElementById('load-more-images-btn').textContent = '↓ Load More Images';
     document.getElementById('custom-image-preview').style.display = 'none';
