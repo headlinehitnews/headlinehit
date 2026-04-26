@@ -1329,17 +1329,33 @@
     document.getElementById('source-picker').style.display = 'none';
     document.getElementById('source-options').innerHTML = '';
 
-    // Use sources already extracted from RSS if available
-    const sources = story.sources || [];
-    const resolvedUrl = story.url; // Already resolved in RSS parser
+    const googleLinks = story.googleArticleLinks || [];
+    let resolvedUrl = story.url;
+    let sources = [];
+
+    // If we have Google article links, resolve them to real URLs
+    if (googleLinks.length > 0) {
+      try {
+        status('Finding article sources...', '', true);
+        const res = await fetch(WORKER + '/admin/resolve-url', {
+          method: 'POST', headers: authHeader,
+          body: JSON.stringify({ googleArticleLinks: googleLinks, url: story.url })
+        });
+        const data = await res.json();
+        if (data.url && !data.url.includes('google.com')) resolvedUrl = data.url;
+        sources = data.sources || [];
+      } catch (e) {}
+      status('Ready');
+    }
 
     modalState = { url: resolvedUrl, image: null, headline: '', position: null, categoryIndex: null };
 
     // Show source bar
     document.getElementById('source-bar').style.display = '';
-    document.getElementById('source-url-display').textContent = getDomain(resolvedUrl);
+    const displayDomain = getDomain(resolvedUrl);
+    document.getElementById('source-url-display').textContent = displayDomain || resolvedUrl;
 
-    // Show source picker if multiple sources available
+    // Show source picker if multiple sources found
     if (sources.length > 1) {
       document.getElementById('source-picker').style.display = '';
       const opts = document.getElementById('source-options');
