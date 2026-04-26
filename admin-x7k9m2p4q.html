@@ -1329,28 +1329,14 @@
     document.getElementById('source-picker').style.display = 'none';
     document.getElementById('source-options').innerHTML = '';
 
-    let resolvedUrl = story.url;
-    let sources = [];
-
-    if (story.url.includes('news.google.com') || story.url.includes('google.com')) {
-      try {
-        status('Finding article sources...', '', true);
-        const res = await fetch(WORKER + '/admin/resolve-url', {
-          method: 'POST', headers: authHeader,
-          body: JSON.stringify({ url: story.url })
-        });
-        const data = await res.json();
-        if (data.url) resolvedUrl = data.url;
-        sources = data.sources || [];
-      } catch (e) {}
-      status('Ready');
-    }
+    // Use sources already extracted from RSS if available
+    const sources = story.sources || [];
+    const resolvedUrl = story.url; // Already resolved in RSS parser
 
     modalState = { url: resolvedUrl, image: null, headline: '', position: null, categoryIndex: null };
 
     // Show source bar
-    const sourceBar = document.getElementById('source-bar');
-    sourceBar.style.display = '';
+    document.getElementById('source-bar').style.display = '';
     document.getElementById('source-url-display').textContent = getDomain(resolvedUrl);
 
     // Show source picker if multiple sources available
