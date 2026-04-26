@@ -722,6 +722,16 @@
     <button class="modal-close" onclick="closeModal()">×</button>
     <div class="modal-title" id="modal-title">Add Story</div>
 
+    <!-- Source URL display + picker -->
+    <div id="source-bar" style="display:none;margin-bottom:14px;padding:10px 12px;background:#f8f8f8;border-radius:4px;border:1px solid var(--border);">
+      <div style="font-size:0.7em;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">Source</div>
+      <div id="source-url-display" style="font-size:0.88em;color:var(--navy);font-weight:bold;margin-bottom:6px;word-break:break-all;"></div>
+      <div id="source-picker" style="display:none;">
+        <div style="font-size:0.72em;color:var(--muted);margin-bottom:4px;">Switch to a different source:</div>
+        <div id="source-options" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+    </div>
+
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
 
       <!-- Left column -->
@@ -1295,6 +1305,8 @@
     document.getElementById('headline-options').innerHTML = '';
     document.getElementById('custom-image-url').value = '';
     document.getElementById('load-more-images-btn').style.display = 'none';
+    document.getElementById('source-bar').style.display = 'none';
+    document.getElementById('source-options').innerHTML = '';
     document.getElementById('load-more-images-btn').disabled = false;
     document.getElementById('load-more-images-btn').textContent = '↓ Load More Images';
     document.getElementById('custom-image-preview').style.display = 'none';
@@ -1313,26 +1325,71 @@
     editIndex = null;
     document.getElementById('modal-title').textContent = 'Add Story';
     document.getElementById('custom-headline').value = '';
+    document.getElementById('source-bar').style.display = 'none';
+    document.getElementById('source-picker').style.display = 'none';
+    document.getElementById('source-options').innerHTML = '';
 
-    // Resolve Google News redirect URLs to real article URLs
     let resolvedUrl = story.url;
-    if (story.url.includes('news.google.com') || story.url.includes('google.com/rss')) {
+    let sources = [];
+
+    if (story.url.includes('news.google.com') || story.url.includes('google.com')) {
       try {
-        status('Resolving article URL...', '', true);
+        status('Finding article sources...', '', true);
         const res = await fetch(WORKER + '/admin/resolve-url', {
           method: 'POST', headers: authHeader,
           body: JSON.stringify({ url: story.url })
         });
         const data = await res.json();
         if (data.url) resolvedUrl = data.url;
+        sources = data.sources || [];
       } catch (e) {}
       status('Ready');
     }
 
     modalState = { url: resolvedUrl, image: null, headline: '', position: null, categoryIndex: null };
+
+    // Show source bar
+    const sourceBar = document.getElementById('source-bar');
+    sourceBar.style.display = '';
+    document.getElementById('source-url-display').textContent = getDomain(resolvedUrl);
+
+    // Show source picker if multiple sources available
+    if (sources.length > 1) {
+      document.getElementById('source-picker').style.display = '';
+      const opts = document.getElementById('source-options');
+      sources.forEach((s, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-outline btn-sm' + (i === 0 ? ' selected' : '');
+        btn.style.cssText = i === 0 ? 'border-color:var(--red);background:#fff5f5;' : '';
+        btn.textContent = s.domain;
+        btn.onclick = () => switchSource(s.url, s.domain, btn);
+        opts.appendChild(btn);
+      });
+    }
+
     openModal();
     fetchImages(resolvedUrl);
     fetchHeadlines(resolvedUrl, story.headline || '');
+  }
+
+  function switchSource(url, domain, btn) {
+    modalState.url = url;
+    modalState.image = null;
+    document.getElementById('source-url-display').textContent = domain;
+    // Highlight selected button
+    document.querySelectorAll('#source-options .btn').forEach(b => {
+      b.classList.remove('selected');
+      b.style.cssText = '';
+    });
+    btn.classList.add('selected');
+    btn.style.cssText = 'border-color:var(--red);background:#fff5f5;';
+    // Re-fetch images for new source
+    document.getElementById('image-options').innerHTML = '';
+    document.getElementById('image-loading').textContent = 'Fetching images...';
+    document.getElementById('load-more-images-btn').style.display = 'none';
+    document.getElementById('source-bar').style.display = 'none';
+    document.getElementById('source-options').innerHTML = '';
+    fetchImages(url);
   }
 
   // ── Open modal for edit ───────────────────────────────────────────
@@ -1473,6 +1530,8 @@
     document.querySelectorAll('.image-option').forEach(o => o.classList.remove('selected'));
     document.getElementById('custom-image-url').value = '';
     document.getElementById('load-more-images-btn').style.display = 'none';
+    document.getElementById('source-bar').style.display = 'none';
+    document.getElementById('source-options').innerHTML = '';
     document.getElementById('load-more-images-btn').disabled = false;
     document.getElementById('load-more-images-btn').textContent = '↓ Load More Images';
     document.getElementById('custom-image-preview').style.display = 'none';
