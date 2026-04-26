@@ -1309,14 +1309,30 @@
   }
 
   // ── Open modal for add ────────────────────────────────────────────
-  function startAddFromStory(story) {
+  async function startAddFromStory(story) {
     editIndex = null;
-    modalState = { url: story.url, image: null, headline: '', position: null, categoryIndex: null };
     document.getElementById('modal-title').textContent = 'Add Story';
     document.getElementById('custom-headline').value = '';
+
+    // Resolve Google News redirect URLs to real article URLs
+    let resolvedUrl = story.url;
+    if (story.url.includes('news.google.com') || story.url.includes('google.com/rss')) {
+      try {
+        status('Resolving article URL...', '', true);
+        const res = await fetch(WORKER + '/admin/resolve-url', {
+          method: 'POST', headers: authHeader,
+          body: JSON.stringify({ url: story.url })
+        });
+        const data = await res.json();
+        if (data.url) resolvedUrl = data.url;
+      } catch (e) {}
+      status('Ready');
+    }
+
+    modalState = { url: resolvedUrl, image: null, headline: '', position: null, categoryIndex: null };
     openModal();
-    fetchImages(story.url);
-    fetchHeadlines(story.url, story.headline || '');
+    fetchImages(resolvedUrl);
+    fetchHeadlines(resolvedUrl, story.headline || '');
   }
 
   // ── Open modal for edit ───────────────────────────────────────────
